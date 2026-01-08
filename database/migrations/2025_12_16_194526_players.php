@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('user_id')
-            ->unique()                 // garante 1 usuário = 1 player
-            ->constrained()
-            ->cascadeOnDelete();
+                ->unique() //garante 1 usuário = 1 player
+                ->constrained()
+                ->cascadeOnDelete();
 
             $table->string('full_name');
             $table->string('phone', 20)->nullable();
