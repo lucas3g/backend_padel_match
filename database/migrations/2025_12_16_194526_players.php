@@ -13,17 +13,18 @@ return new class extends Migration
     {
         Schema::create('players', function (Blueprint $table) {
             $table->id();
-            $table->string('email')->unique();
-            $table->string('password');
+            $table->foreignId('user_id')
+            ->unique()                 // garante 1 usuário = 1 player
+            ->constrained()
+            ->cascadeOnDelete();
+
             $table->string('full_name');
             $table->string('phone', 20)->nullable();
-
 
             $table->unsignedTinyInteger('level')->default(3);
             $table->enum('side', ['left', 'right'])->nullable();
             $table->text('bio')->nullable();
             $table->text('profile_image_url')->nullable();
-
 
             $table->integer('total_matches')->default(0);
             $table->integer('wins')->default(0);
