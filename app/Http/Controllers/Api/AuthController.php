@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -20,15 +21,13 @@ class AuthController extends Controller
         $user = User::create([
             'name'     => $data['name'],
             'email'    => $data['email'],
-            'password' => bcrypt($data['password']),
+            'password' => Hash::make($data['password']),
         ]);
-
-        $token = $user->createToken('api')->plainTextToken;
 
         return response()->json([
-            'user'  => $user,
-            'token' => $token
-        ]);
+            'message' => 'Usuário criado com sucesso',
+            'user' => $user
+        ], 201);
     }
 
     public function login(Request $request)

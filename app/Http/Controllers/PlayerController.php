@@ -16,18 +16,21 @@ class PlayerController extends Controller
 
     public function store(Request $request)
     {
+        $data = $request->validate([
+            'full_name' => 'required|string|max:255',
+            'data_nascimento' => 'nullable|date',
+            'posicao' => 'nullable|string|max:100',
+        ],
+        [
+            'full_name.required' => 'O nome do jogador é obrigatório.'            
+        ]);
+
         // evita duplicidade
         if ($request->user()->player) {
             return response()->json([
                 'message' => 'Usuário já possui um player cadastrado'
             ], 422);
         }
-
-        $data = $request->validate([
-            'nome' => 'required|string|max:255',
-            'data_nascimento' => 'nullable|date',
-            'posicao' => 'nullable|string|max:100',
-        ]);
 
         $player = $request->user()->player()->create($data);
 
