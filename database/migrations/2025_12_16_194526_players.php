@@ -23,7 +23,7 @@ return new class extends Migration
             $table->string('phone', 20)->nullable();
 
             $table->unsignedTinyInteger('level')->default(3);
-            $table->enum('side', ['left', 'right'])->nullable();
+            $table->enum('side', ['left', 'right', 'both'])->nullable();
             $table->text('bio')->nullable();
             $table->text('profile_image_url')->nullable();
 

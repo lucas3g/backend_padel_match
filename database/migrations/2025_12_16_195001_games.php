@@ -11,14 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('matches', function (Blueprint $table) {
+        Schema::create('games', function (Blueprint $table) {
             $table->id();
             $table->foreignId('creator_id')->constrained('users')->cascadeOnDelete();
 
 
             $table->string('title')->nullable();
             $table->text('description')->nullable();
-            $table->enum('match_type', ['casual', 'competitive', 'training'])->default('casual');
+            $table->enum('game_type', ['casual', 'competitive', 'training'])->default('casual');
             $table->enum('status', ['open', 'full', 'in_progress', 'completed', 'cancelled'])->default('open');
 
 
@@ -58,6 +58,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('matches');
+        Schema::dropIfExists('games');
     }
 };
