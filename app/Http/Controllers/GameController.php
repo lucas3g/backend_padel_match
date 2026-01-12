@@ -3,26 +3,18 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
-class PlayerController extends Controller
+class GameController extends Controller
 {
     public function show(Request $request)
     {
         return response()->json(
-            $request->user()->player
+            $request->user()->game
         );
     }
 
     public function store(Request $request)
     {
-        // evita duplicidade
-        if ($request->user()->player) {
-            return response()->json([
-                'message' => 'Usuário já possui um player cadastrado'
-            ], 422);
-        }
-
         $data = $request->validate([
             'full_name' => 'required|string|max:255',
             'level' => 'required|integer',
@@ -34,18 +26,18 @@ class PlayerController extends Controller
             'side.required' => 'O lado do jogador é obrigatório.',
         ]);        
 
-        $player = $request->user()->player()->create($data);
+        $game = $request->user()->game()->create($data);
 
-        return response()->json($player, 201);
+        return response()->json($game, 201);
     }
 
     public function update(Request $request)
     {
-        $player = $request->user()->player;
+        $game = $request->user()->game;
 
-        if (!$player) {
+        if (!$game) {
             return response()->json([
-                'message' => 'Player não encontrado'
+                'message' => 'Jogo não encontrado'
             ], 404);
         }
 
@@ -60,8 +52,8 @@ class PlayerController extends Controller
             'side.required' => 'O lado do jogador é obrigatório.',
         ]);
 
-        $player->update($data);
+        $game->update($data);
 
-        return response()->json($player);
+        return response()->json($game);
     }
 }
