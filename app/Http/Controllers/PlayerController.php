@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class PlayerController extends Controller
 {
@@ -24,15 +23,17 @@ class PlayerController extends Controller
         }
 
         $data = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'level' => 'required|integer',
-            'side' => 'nullable|string|max:100',
-        ],
-        [
+            "full_name" => 'required|string|max:255',
+            "phone"=> 'nullable|string|max:20',
+            "level"=> 'required|integer',
+            "side"=> 'required|in:left,right,both',
+            "bio"=> 'nullable|string|max:2500',
+            "profile_image_url"=> 'nullable',
+        ], [
             'full_name.required' => 'O nome do jogador é obrigatório.',
             'level.required' => 'A categoria do jogador é obrigatório.',
             'side.required' => 'O lado do jogador é obrigatório.',
-        ]);        
+        ]);       
 
         $player = $request->user()->player()->create($data);
 
@@ -40,8 +41,8 @@ class PlayerController extends Controller
     }
 
     public function update(Request $request)
-    {
-        $player = $request->user()->player;
+    {        
+        $player = $request->user()->player;        
 
         if (!$player) {
             return response()->json([
@@ -50,11 +51,13 @@ class PlayerController extends Controller
         }
 
         $data = $request->validate([
-            'full_name' => 'required|string|max:25  5',
-            'level' => 'required|integer',
-            'side' => 'nullable|string|max:100',
-        ],
-        [
+            "full_name" => 'required|string|max:255',
+            "phone"=> 'nullable|string|max:20',
+            "level"=> 'required|integer',
+            "side"=> 'required|in:left,right,both',
+            "bio"=> 'nullable|string|max:2500',
+            "profile_image_url"=> 'nullable',
+        ], [
             'full_name.required' => 'O nome do jogador é obrigatório.',
             'level.required' => 'A categoria do jogador é obrigatório.',
             'side.required' => 'O lado do jogador é obrigatório.',
