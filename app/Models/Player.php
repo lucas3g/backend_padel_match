@@ -31,4 +31,16 @@ class Player extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function games()
+    {
+        return $this->belongsToMany(Game::class, 'game_players')
+            ->withPivot('joined_at')
+            ->withTimestamps();
+    }
+
+    public function stats()
+    {
+        return $this->hasOne(PlayerStat::class);
+    }
 }

@@ -12,23 +12,29 @@ class Game extends Model
     protected $fillable = [
         'title',
         'description',
-        'game_type',
+        'type',
         'status',
+        'data_time',
+        'club_id',
         'court_id',
         'custom_location',
-        'scheduled_date',
-        'scheduled_time',
-        'duration_minutes',
         'min_level',
-        'max_level',
+        'max_level',        
         'max_players',
-        'current_players',
+        'price',
         'cost_per_player',
-        'payment_required',
         'team1_score',
         'team2_score',
+        'game_type',
         'winner_team',
-        'completed_at',
-        'creator_id'            
+        'creator_id',
+        'duration_minutes'                 
     ];    
+    
+    public function players()
+    {
+        return $this->belongsToMany(Player::class, 'game_players')
+                    ->withPivot('joined_at')
+                    ->withTimestamps();
+    }
 }

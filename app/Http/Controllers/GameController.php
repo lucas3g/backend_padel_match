@@ -19,21 +19,26 @@ class GameController extends Controller
         $data = $request->validate([
             "title" => 'nullable|string|max:255',
             "description"=> 'nullable|string|max:500',            
-            "game_type"  => 'required|in:casual,competitive,training',
-            "status"     => 'required|in:open,full,in_progress,completed, canceled',
-            "court_id"   => 'required|integer',
-            "custom_location"=> 'nullable',
-            "scheduled_date" => 'required',
-            "scheduled_time" => 'required',
-            "duration_minutes" => 'nullable',
+            "type"  => 'required|in:public,private',
+            "data_time" => 'required',
+            "club_id" => 'required',
+            "court_id" => 'required',
+            "custom_location" => 'nullable|string|max:500',
             "min_level" => 'nullable',
             "max_level" => 'nullable',
             "max_players" => 'nullable',
-            "current_players" => 'nullable'
+            "status"     => 'required|in:open,full,in_progress,completed, canceled',
+            "price" => 'nullable',
+            "cost_per_player" => 'nullable',
+            "game_type" => 'required|in:casual, competitive, training',
+            "duration_minutes" => 'nullable'            
         ], [
-            'game_type.required' => 'O tipo de partida é obrigatório.',
+            'type.required' => 'O tipo de partida é obrigatório. Defina entre publica ou privada',
             'status.required' => 'A status da partida é obrigatório.',
-            'court_id.required' => 'O clube é obrigatório.',
+            'data_time.required' => 'A data e hora da partida é obrigatório.',
+            'club_id.required' => 'O clube é obrigatório.',
+            'court_id.required' => 'A quadra é obrigatório.',
+            'court_id.required' => 'O clube é obrigatório.',            
         ]);
         
         $data['creator_id'] = $request->user()->id;
@@ -56,21 +61,26 @@ class GameController extends Controller
         $data = $request->validate([
             "title" => 'nullable|string|max:255',
             "description"=> 'nullable|string|max:500',            
-            "game_type"  => 'required|in:casual,competitive,training',
-            "status"     => 'required|in:open,full,in_progress,completed, canceled',
-            "court_id"   => 'required|integer',
-            "custom_location"=> 'nullable',
-            "scheduled_date" => 'required',
-            "scheduled_time" => 'required',
-            "duration_minutes" => 'nullable',
+            "type"  => 'required|in:public,private',
+            "data_time" => 'required',
+            "club_id" => 'required',
+            "court_id" => 'required',
+            "custom_location" => 'nullable|string|max:500',
             "min_level" => 'nullable',
             "max_level" => 'nullable',
             "max_players" => 'nullable',
-            "current_players" => 'nullable'
+            "status"     => 'required|in:open,full,in_progress,completed, canceled',
+            "price" => 'nullable',
+            "cost_per_player" => 'nullable',
+            "game_type" => 'required|in:casual, competitive, training',
+            "duration_minutes" => 'nullable'            
         ], [
-            'game_type.required' => 'O tipo de partida é obrigatório.',
+            'type.required' => 'O tipo de partida é obrigatório. Defina entre publica ou privada',
             'status.required' => 'A status da partida é obrigatório.',
-            'court_id.required' => 'O clube é obrigatório.',
+            'data_time.required' => 'A data e hora da partida é obrigatório.',
+            'club_id.required' => 'O clube é obrigatório.',
+            'court_id.required' => 'A quadra é obrigatório.',
+            'court_id.required' => 'O clube é obrigatório.',            
         ]);
         
         $data['creator_id'] = $request->user()->id;
