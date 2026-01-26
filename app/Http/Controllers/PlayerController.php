@@ -15,13 +15,12 @@ class PlayerController extends Controller
 
     public function store(Request $request)
     {
-        // evita duplicidade
         if ($request->user()->player) {
             return response()->json([
                 'message' => 'Usuário já possui um player cadastrado'
             ], 422);
         }
-
+        
         $data = $request->validate([
             "full_name" => 'required|string|max:255',
             "phone"=> 'nullable|string|max:20',

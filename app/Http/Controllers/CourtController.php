@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Club;
 use App\Models\Court;
 use Illuminate\Http\Request;
 
@@ -17,27 +18,27 @@ class CourtController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:255',
-            'description'   => 'required|string',
-            'address'       => 'nullable|string|max:255',
-            'city'          => 'nullable|string|max:100',
-            'state'         => 'nullable|string|max:2',
-            'postal_code'   => 'nullable|string|max:20',
-            'latitude'      => 'nullable|numeric',
-            'longitude'     => 'nullable|numeric',
-            'court_type'    => 'nullable|string|max:50',
-            'surface_type'  => 'nullable|string|max:50',
+            'club_id'        => 'required|exists:clubs,id',
+            'name'           => 'required|string|max:255',
+            'description'    => 'required|string',
+            'type'           => 'required|in:padel,beach_tenis',
+            'covered'        => 'nullable|boolean',
+            'price_per_hour' => 'nullable|numeric',
+            'images'         => 'nullable',
+            'main_image_url' => 'nullable|string'
         ], [
-            'name.required'        => 'O nome do clube é obrigatório.',
-            'description.required' => 'A descrição do clube é obrigatória.',
+            'club_id.required'     => 'É obrigatório informar o clube',
+            'name.required'        => 'O nome da quadra é obrigatório',
+            'description.required' => 'A descrição da quadra é obrigatória',
         ]);
 
-        $court = Court::create($data);
+        $club  = Club::findOrFail($data['club_id']);
+        $court = $club->courts()->create($data);
 
         return response()->json([
-            'message' => 'Clube criado com sucesso',
+            'message' => 'Quadra criada com sucesso',
             'data'    => $court
-        ], 200);
+        ], 201);
     }
 
     public function update(Request $request, $id)
@@ -51,18 +52,18 @@ class CourtController extends Controller
         }
 
         $data = $request->validate([
-            'name'          => 'required|string|max:255',
-            'description'   => 'required|string',
-            'address'       => 'nullable|string|max:255',
-            'city'          => 'nullable|string|max:100',
-            'state'         => 'nullable|string|max:2',
-            'postal_code'   => 'nullable|string|max:20',
-            'latitude'      => 'nullable|numeric',
-            'longitude'     => 'nullable|numeric',
-            'court_type'    => 'nullable|string|max:50',
-            'surface_type'  => 'nullable|string|max:50',
+            'club_id'        => 'required',
+            'name'           => 'required|string|max:255',
+            'description'    => 'required|string',
+            'type'           => 'required|in:padel,beach_tenis',
+            'covered'        => 'nullable',
+            'price_per_hour' => 'nullable',
+            'images'         => 'nullable',
+            'main_image_url' => 'nullable'
+            
         ], [
-            'name.required'        => 'O nome do clube é obrigatório.',
+            'club_id.required'     => 'O obrigatório informar o clube',
+            'name.required'        =>  'O nome da quadra é obrigatório',
             'description.required' => 'A descrição do clube é obrigatória.',
         ]);
 
