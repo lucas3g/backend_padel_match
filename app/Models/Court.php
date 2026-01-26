@@ -10,22 +10,17 @@ class Court extends Model
     use HasFactory;
 
     protected $fillable = [
+        'clubd_id',
         'name',
         'description',
-        'address',
-        'city',
-        'state',
-        'postal_code',
-        'latitude',
-        'longitude',
-        'court_type',
-        'surface_type'
-    ];
-
-    protected $casts = [
-        'latitude' => 'float',
-        'longitude' => 'float',
-    ];
+        'type',
+        'covered',
+        'images',
+        'main_image_url',
+        'rating',
+        'total_reviews',
+        'active'
+    ];    
 
      public function club()
     {

@@ -10,9 +10,28 @@ class Club extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'slug', 'document', 'email', 'phone',
-        'address', 'number', 'neighborhood', 'city',
-        'state', 'zip_code', 'open_time', 'close_time', 'active'
+        'name', 
+        'description', 
+        'document', 
+        'email', 
+        'phone',
+        'whatsapp',
+        'address', 
+        'city',
+        'state',
+        'neighborhood', 
+        'zip_code',
+        'number', 
+        'latitude',
+        'longitude',
+        'open_time', 
+        'close_time', 
+        'active'
+    ];
+
+    protected $casts = [
+        'latitude' => 'float',
+        'longitude' => 'float',
     ];
 
     public function courts()
