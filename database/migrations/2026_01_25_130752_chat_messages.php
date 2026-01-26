@@ -11,24 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('match_messages', function (Blueprint $table) {
+         Schema::create('chat_messages', function (Blueprint $table) {
             $table->id();
 
-            $table->uuid('match_id');
-            $table->uuid('sender_id');
+            $table->foreignId('game_id')
+                  ->constrained('games')
+                  ->cascadeOnDelete();
+
+            $table->foreignId('sender_id')
+                  ->constrained('users')
+                  ->cascadeOnDelete();
 
             $table->string('sender_name');
             $table->text('message');
 
-            $table->foreign('match_id')
-                  ->references('id')
-                  ->on('matches')
-                  ->cascadeOnDelete();
-
-            $table->foreign('sender_id')
-                  ->references('id')
-                  ->on('users')
-                  ->cascadeOnDelete();
+            $table->timestamp('timestamp')
+                  ->useCurrent();
 
             $table->timestamps();
         });
@@ -39,6 +37,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('match_messages');
+        Schema::dropIfExists('chat_messages');
     }
 };

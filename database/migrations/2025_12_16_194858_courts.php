@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('courts', function (Blueprint $table) {
             $table->id();
 
-            // Relacionamento com club
             $table->foreignId('club_id')
                   ->constrained('clubs')
                   ->cascadeOnDelete();
@@ -22,7 +21,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
                         
-            $table->enum('type', ['padel', 'beach'])->default('padel');
+            $table->enum('type', ['padel', 'beach_tenis'])->default('padel');
             $table->boolean('covered')->default(false);
             
             $table->decimal('price_per_hour', 10, 2)->nullable();

@@ -30,9 +30,7 @@ return new class extends Migration
 
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
-            
-            $table->index('rating');                       
-            
+                        
             $table->time('open_time')->nullable();
             $table->time('close_time')->nullable();
             $table->boolean('active')->default(true);
