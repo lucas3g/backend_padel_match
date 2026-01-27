@@ -98,12 +98,786 @@
                     }
                 }
             }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logout do usuário autenticado",
+                "description": "Revoga o token de acesso atual do usuário autenticado",
+                "operationId": "ad65cbbd4e9f201619eae184a5961a98",
+                "responses": {
+                    "200": {
+                        "description": "Logout realizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Logout realizado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Usuário não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs": {
+            "get": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Lista todos os clubes",
+                "operationId": "0792ba6636beacde2fa5b4fe9fb3f010",
+                "responses": {
+                    "200": {
+                        "description": "Lista de clubes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Cria um novo clube",
+                "operationId": "4e37feabfe957444c16ab299c31af0a7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Clube criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/clubs/{id}": {
+            "put": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Atualiza um clube",
+                "operationId": "9a7201b06d26cfc6aa54fe93f98774d2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Clube atualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Clube não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/courts": {
+            "get": {
+                "tags": [
+                    "Courts"
+                ],
+                "summary": "Lista todas as quadras",
+                "description": "Retorna todas as quadras cadastradas",
+                "operationId": "98dc9e251e46b5d33680f24387232209",
+                "responses": {
+                    "200": {
+                        "description": "Lista de quadras",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Usuário não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Courts"
+                ],
+                "summary": "Cria uma nova quadra",
+                "description": "Cria uma quadra vinculada a um clube",
+                "operationId": "d3f17259f42a90e559700103d00c99c1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "club_id",
+                                    "name",
+                                    "description",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "club_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Quadra Central"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Quadra coberta com iluminação"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "padel",
+                                            "beach_tenis"
+                                        ],
+                                        "example": "padel"
+                                    },
+                                    "covered": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "price_per_hour": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 120
+                                    },
+                                    "images": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "main_image_url": {
+                                        "type": "string",
+                                        "example": "https://site.com/quadra.jpg"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Quadra criada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/courts/{id}": {
+            "put": {
+                "tags": [
+                    "Courts"
+                ],
+                "summary": "Atualiza uma quadra",
+                "description": "Atualiza os dados de uma quadra existente",
+                "operationId": "03937e22461ecea05900a51bc9569ecc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da quadra",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "club_id",
+                                    "name",
+                                    "description",
+                                    "type"
+                                ],
+                                "properties": {
+                                    "club_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Quadra Principal"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Quadra reformada"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "padel",
+                                            "beach_tenis"
+                                        ],
+                                        "example": "beach_tenis"
+                                    },
+                                    "covered": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "price_per_hour": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 90
+                                    },
+                                    "images": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "main_image_url": {
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Quadra atualizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Quadra não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game": {
+            "get": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Lista todos as partidas",
+                "operationId": "961c8774f80a937cbd619e7084baa203",
+                "responses": {
+                    "200": {
+                        "description": "Lista as partidas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/games": {
+            "post": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Cria uma nova partida",
+                "description": "Cria uma nova partida associada ao usuário autenticado",
+                "operationId": "b8b9557618eb0f7b3650bdd4ab3a6487",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "type",
+                                    "data_time",
+                                    "club_id",
+                                    "court_id",
+                                    "status",
+                                    "game_type"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Partida de Padel"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Partida amistosa"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "public",
+                                            "private"
+                                        ],
+                                        "example": "public"
+                                    },
+                                    "data_time": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-02-10 19:00:00"
+                                    },
+                                    "club_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "court_id": {
+                                        "type": "integer",
+                                        "example": 3
+                                    },
+                                    "custom_location": {
+                                        "type": "string",
+                                        "example": "Quadra externa"
+                                    },
+                                    "min_level": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "max_level": {
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "max_players": {
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "open",
+                                            "full",
+                                            "in_progress",
+                                            "completed",
+                                            "canceled"
+                                        ],
+                                        "example": "open"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 120
+                                    },
+                                    "cost_per_player": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 30
+                                    },
+                                    "game_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "casual",
+                                            "competitive",
+                                            "training"
+                                        ],
+                                        "example": "casual"
+                                    },
+                                    "duration_minutes": {
+                                        "type": "integer",
+                                        "example": 90
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Partida criada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/games/{id}": {
+            "put": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Atualiza uma partida",
+                "description": "Atualiza os dados de uma partida existente",
+                "operationId": "7a7a51e92437ab9405a4bd9153eacec7",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Clube atualizado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/player": {
+            "get": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Exibe o player do usuário autenticado",
+                "description": "Retorna os dados do player associado ao usuário logado",
+                "operationId": "a5d7083065f0a61e14e38f7e7a45f86e",
+                "responses": {
+                    "200": {
+                        "description": "Player encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Usuário não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Atualiza o player do usuário",
+                "description": "Atualiza os dados do player associado ao usuário autenticado",
+                "operationId": "2e20018208411a2682bf9a1b18babba8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "full_name",
+                                    "level",
+                                    "side"
+                                ],
+                                "properties": {
+                                    "full_name": {
+                                        "type": "string",
+                                        "example": "João da Silva"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "(49) 99999-9999"
+                                    },
+                                    "level": {
+                                        "type": "integer",
+                                        "example": 4
+                                    },
+                                    "side": {
+                                        "type": "string",
+                                        "enum": [
+                                            "left",
+                                            "right",
+                                            "both"
+                                        ],
+                                        "example": "both"
+                                    },
+                                    "bio": {
+                                        "type": "string",
+                                        "example": "Jogador intermediário"
+                                    },
+                                    "profile_image_url": {
+                                        "type": "string",
+                                        "example": "https://site.com/foto.jpg"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Player atualizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Player não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Cadastra um novo player",
+                "description": "Cria o perfil de player para o usuário autenticado",
+                "operationId": "287a67768b206bd753d4b762bc2876a5",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "full_name",
+                                    "level",
+                                    "side"
+                                ],
+                                "properties": {
+                                    "full_name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "João da Silva"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "(49) 99999-9999"
+                                    },
+                                    "level": {
+                                        "type": "integer",
+                                        "example": 3
+                                    },
+                                    "side": {
+                                        "type": "string",
+                                        "enum": [
+                                            "left",
+                                            "right",
+                                            "both"
+                                        ],
+                                        "example": "right"
+                                    },
+                                    "bio": {
+                                        "type": "string",
+                                        "example": "Jogador iniciante"
+                                    },
+                                    "profile_image_url": {
+                                        "type": "string",
+                                        "example": "https://site.com/foto.jpg"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Player criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Usuário já possui um player cadastrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "tags": [
         {
             "name": "Auth",
             "description": "Autenticação de usuários"
+        },
+        {
+            "name": "Clubs",
+            "description": "Gerenciamento de clubes"
+        },
+        {
+            "name": "Courts",
+            "description": "Gerenciamento de quadras"
+        },
+        {
+            "name": "Games",
+            "description": "Gerenciamento de partidas"
+        },
+        {
+            "name": "Player",
+            "description": "Gerenciamento do perfil do jogador"
         }
     ]
 }
