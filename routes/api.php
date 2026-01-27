@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\ClubControoller;
+use App\Http\Controllers\ClubController;
 use App\Http\Controllers\CourtController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\PlayerController;
@@ -33,9 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/player', [PlayerController::class, 'store']);
     Route::put('/player', [PlayerController::class, 'update']);
 
-    Route::get('/club', [ClubControoller::class, 'show']);
-    Route::post('/club', [ClubControoller::class, 'store']);
-    Route::put('/club/{id}', [ClubControoller::class, 'update']);
+    Route::get('/club', [ClubController::class, 'show']);
+    Route::post('/club', [ClubController::class, 'store']);
+    Route::put('/club/{id}', [ClubController::class, 'update']);
 
     Route::get('/court', [CourtController::class, 'show']);
     Route::post('/court', [CourtController::class, 'store']);

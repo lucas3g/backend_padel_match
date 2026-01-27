@@ -5,8 +5,31 @@ namespace App\Http\Controllers;
 use App\Models\Club;
 use Illuminate\Http\Request;
 
-class ClubControoller extends Controller
+/**
+ * @OA\Tag(
+ *     name="Clubs",
+ *     description="Gerenciamento de clubes"
+ * )
+ */
+class ClubController extends Controller
 {
+    /**
+     * @OA\Get(
+     *     path="/api/clubs",
+     *     tags={"Clubs"},
+     *     summary="Lista todos os clubes",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de clubes",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
+     */
     public function show(Request $request)
     {
         return response()->json(
@@ -14,6 +37,30 @@ class ClubControoller extends Controller
         );
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/clubs",
+     *     tags={"Clubs"},
+     *     summary="Cria um novo clube",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=201,
+     *         description="Clube criado com sucesso",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro de validação"
+     *     )
+     * )
+     */
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -36,19 +83,50 @@ class ClubControoller extends Controller
         ], [
             'name.required'        => 'O nome do clube é obrigatório.',
             'description.required' => 'A descrição do clube é obrigatória.',
-        ]);   
+        ]);
 
         $club = Club::create($data);
 
         return response()->json([
             'message' => 'Clube criado com sucesso',
             'data'    => $club
-        ], 200);
+        ], 201);
     }
 
+    /**
+     * @OA\Put(
+     *     path="/api/clubs/{id}",
+     *     tags={"Clubs"},
+     *     summary="Atualiza um clube",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Clube atualizado",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="Clube não encontrado"
+     *     )
+     * )
+     */
     public function update(Request $request, $id)
     {
-        $club = Club::find($id);        
+        $club = Club::find($id);
 
         if (!$club) {
             return response()->json([
@@ -76,7 +154,7 @@ class ClubControoller extends Controller
         ], [
             'name.required'        => 'O nome do clube é obrigatório.',
             'description.required' => 'A descrição do clube é obrigatória.',
-        ]); 
+        ]);
 
         $club->update($data);
 
