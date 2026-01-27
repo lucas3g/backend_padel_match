@@ -120,6 +120,32 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/me",
+     *     tags={"Auth"},
+     *     summary="Logado",
+     *     description="Verifica se usuário está logado",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autenticado"
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Dados do usuário autenticado"
+     *     )
+     * )
+     */
+    public function me(Request $request)
+    {
+        if ($request->user()) {
+            return response()->json($request->user());
+        }
+
+        return response()->json(['message' => 'Não autenticado'], 401);
+    }
 
     /**
      * @OA\Post(
