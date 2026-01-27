@@ -99,6 +99,29 @@
                 }
             }
         },
+        "/api/me": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Logado",
+                "description": "Verifica se usuário está logado",
+                "operationId": "9c11687b92453c876155ea97978a9301",
+                "responses": {
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "200": {
+                        "description": "Dados do usuário autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/logout": {
             "post": {
                 "tags": [
