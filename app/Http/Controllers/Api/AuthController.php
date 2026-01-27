@@ -75,8 +75,8 @@ class AuthController extends Controller
      * @OA\Post(
      *     path="/api/login",
      *     tags={"Auth"},
-     *     summary="Login",
-     *     description="Faz login no sistema",
+     *     summary="Login no sistema",
+     *     description="Faz login no sistema para usuário criado",
      *
      *     @OA\RequestBody(
      *         required=true,
@@ -124,7 +124,7 @@ class AuthController extends Controller
      * @OA\Post(
      *     path="/api/me",
      *     tags={"Auth"},
-     *     summary="Logado",
+     *     summary="Usuário logado",
      *     description="Verifica se usuário está logado",
      *     security={{"bearerAuth":{}}},
      *

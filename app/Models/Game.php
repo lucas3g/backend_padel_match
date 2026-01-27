@@ -13,7 +13,6 @@ class Game extends Model
         'title',
         'description',
         'type',
-        'status',
         'data_time',
         'club_id',
         'court_id',
@@ -26,10 +25,14 @@ class Game extends Model
         'team1_score',
         'team2_score',
         'game_type',
-        'winner_team',
-        'creator_id',
+        'winner_team',        
         'duration_minutes'                 
     ];    
+
+    public function owner()
+    {
+        return $this->belongsTo(Player::class, 'owner_player_id');
+    }
     
     public function players()
     {

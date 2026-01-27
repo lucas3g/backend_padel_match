@@ -43,4 +43,9 @@ class Player extends Model
     {
         return $this->hasOne(PlayerStat::class);
     }
+
+    public function ownedGames()
+    {
+        return $this->hasMany(Game::class, 'owner_player_id');
+    }
 }

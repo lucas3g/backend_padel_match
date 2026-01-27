@@ -32,9 +32,24 @@ class GameController extends Controller
      */
     public function show(Request $request)
     {
+        /*
         return response()->json(
             Game::all()
         );
+        */
+        $player = $request->user()->player;
+
+        $games = $player->games;
+
+        /*
+        $playerId = $request->user()->player->id;
+
+        return response()->json($playerId);
+        exit();
+
+        $games = Game::where('player_id', $playerId)->get();
+        */
+        return response()->json($games);
     }
 
     /**
@@ -85,32 +100,53 @@ class GameController extends Controller
             "title" => 'nullable|string|max:255',
             "description" => 'nullable|string|max:500',
             "type"  => 'required|in:public,private',
-            "data_time" => 'required',
-            "club_id" => 'required',
-            "court_id" => 'required',
+            "data_time" => 'required|date',
+            "club_id" => 'required|exists:clubs,id',
+            "court_id" => 'required|exists:courts,id',
             "custom_location" => 'nullable|string|max:500',
-            "min_level" => 'nullable',
-            "max_level" => 'nullable',
-            "max_players" => 'nullable',
-            "status"     => 'required|in:open,full,in_progress,completed, canceled',
-            "price" => 'nullable',
-            "cost_per_player" => 'nullable',
-            "game_type" => 'required|in:casual, competitive, training',
-            "duration_minutes" => 'nullable'
-        ], [
-            'type.required' => 'O tipo de partida é obrigatório. Defina entre publica ou privada',
-            'status.required' => 'A status da partida é obrigatório.',
-            'data_time.required' => 'A data e hora da partida é obrigatório.',
-            'club_id.required' => 'O clube é obrigatório.',
-            'court_id.required' => 'A quadra é obrigatório.',
-            'court_id.required' => 'O clube é obrigatório.',
+            "min_level" => 'nullable|integer',
+            "max_level" => 'nullable|integer',
+            "max_players" => 'nullable|integer|min:2',
+            "price" => 'nullable|numeric',
+            "cost_per_player" => 'nullable|numeric',
+            "game_type" => 'required|in:casual,competitive,training',
+            "duration_minutes" => 'nullable|integer|min:30'
         ]);
 
-        $data['creator_id'] = $request->user()->id;
+        $player = $request->user()->player;
 
-        $game = Game::create($data);
+        if (!$player) {
+            return response()->json([
+                'message' => 'Usuário não possui player vinculado'
+            ], 422);
+        }
 
-        return response()->json($game, 201);
+        $game = new Game($data);
+        $game->owner_player_id = $player->id;
+        $game->status = 'open';
+        $game->save();
+
+        $game->players()->attach($player->id, [
+            'joined_at' => now()
+        ]);
+
+        return response()->json(
+            $game->load('players'),
+            201
+        );
+    }
+
+    public function join(Request $request, Game $game)
+    {
+        $player = $request->user()->player;
+
+        $game->players()->syncWithoutDetaching([
+            $player->id => ['joined_at' => now()]
+        ]);
+
+        return response()->json([
+            'message' => 'Entrou na partida'
+        ]);
     }
 
     /**
@@ -167,10 +203,10 @@ class GameController extends Controller
             "min_level" => 'nullable',
             "max_level" => 'nullable',
             "max_players" => 'nullable',
-            "status"     => 'required|in:open,full,in_progress,completed, canceled',
+            "status"     => 'required|in:open,full,in_progress,completed,canceled',
             "price" => 'nullable',
             "cost_per_player" => 'nullable',
-            "game_type" => 'required|in:casual, competitive, training',
+            "game_type" => 'required|in:casual,competitive,training',
             "duration_minutes" => 'nullable'
         ], [
             'type.required' => 'O tipo de partida é obrigatório. Defina entre publica ou privada',
@@ -180,8 +216,6 @@ class GameController extends Controller
             'court_id.required' => 'A quadra é obrigatório.',
             'court_id.required' => 'O clube é obrigatório.',
         ]);
-
-        $data['creator_id'] = $request->user()->id;
 
         $game->update($data);
 

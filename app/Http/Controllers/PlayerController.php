@@ -57,7 +57,7 @@ class PlayerController extends Controller
      *             required={"full_name","level","side"},
      *             @OA\Property(property="full_name", type="string", maxLength=255, example="João da Silva"),
      *             @OA\Property(property="phone", type="string", maxLength=20, example="(49) 99999-9999"),
-     *             @OA\Property(property="level", type="integer", example=3),
+     *             @OA\Property(property="level", type="integer", example=5),
      *             @OA\Property(property="side", type="string", enum={"left","right","both"}, example="right"),
      *             @OA\Property(property="bio", type="string", example="Jogador iniciante"),
      *             @OA\Property(property="profile_image_url", type="string", example="https://site.com/foto.jpg")
