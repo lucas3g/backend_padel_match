@@ -34,16 +34,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/player', [PlayerController::class, 'store']);
     Route::put('/player', [PlayerController::class, 'update']);
 
-    Route::get('/club', [ClubController::class, 'show']);
+    Route::get('/club/{id?}', [ClubController::class, 'show']);
     Route::post('/club', [ClubController::class, 'store']);
     Route::put('/club/{id}', [ClubController::class, 'update']);
 
-    Route::get('/court', [CourtController::class, 'show']);
+    Route::get('/court/{id?}', [CourtController::class, 'show']);
     Route::post('/court', [CourtController::class, 'store']);
     Route::put('/court/{id}', [CourtController::class, 'update']);
 
-    Route::get('/game', [GameController::class, 'show']);
+    Route::get('/game/{id?}', [GameController::class, 'show']);
     Route::post('/game', [GameController::class, 'store']);
-    Route::put('/game/{id}', [GameController::class, 'update']);
+
+    Route::post('/game/{game}/join', [GameController::class, 'store']);//ver
+
+    Route::put('/game/{id}', [GameController::class, 'update']);   
 
 });
