@@ -39,7 +39,7 @@ class GameController extends Controller
 
     /**
      * @OA\Post(
-     *     path="/api/games",
+     *     path="/api/game",
      *     tags={"Games"},
      *     summary="Cria uma nova partida",
      *     description="Cria uma nova partida associada ao usuário autenticado",
@@ -115,7 +115,7 @@ class GameController extends Controller
 
     /**
      * @OA\Put(
-     *     path="/api/games/{id}",
+     *     path="/api/game/{id}",
      *     tags={"Games"},
      *     summary="Atualiza uma partida",
      *     description="Atualiza os dados de uma partida existente",
