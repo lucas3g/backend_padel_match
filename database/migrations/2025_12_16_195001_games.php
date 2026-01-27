@@ -12,16 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('games', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('creator_id')->constrained('users')->cascadeOnDelete();
+            $table->id();            
 
             $table->string('title')->nullable();
             $table->text('description')->nullable();
             $table->enum('type', ['private', 'public'])->default('private');
             $table->dateTime('data_time');
 
-            $table->foreignId('club_id')->nullable()->constrained()->nullOnDelete();
-            $table->foreignId('court_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('club_id')->constrained('clubs')->cascadeOnDelete();
+            $table->foreignId('court_id')->constrained('courts')->cascadeOnDelete();
+            $table->foreignId('owner_player_id')->constrained('players')->cascadeOnDelete();
+
             $table->text('custom_location')->nullable();
 
             $table->unsignedTinyInteger('min_level')->nullable();
@@ -34,14 +35,12 @@ return new class extends Migration
             $table->decimal('price', 10, 2)->nullable();
             $table->decimal('cost_per_player', 10, 2)->nullable();
 
-
             $table->enum('game_type', ['casual', 'competitive', 'training'])->nullable()->default('casual');            
-            $table->integer('duration_minutes')->nullable()->default(90);            
-            
+            $table->integer('duration_minutes')->nullable()->default(90);                        
 
             $table->unsignedTinyInteger('team1_score')->nullable();
             $table->unsignedTinyInteger('team2_score')->nullable();
-            $table->unsignedTinyInteger('winner_team')->nullable();
+            $table->unsignedTinyInteger('winner_team')->nullable();           
 
             $table->timestamps();
 
