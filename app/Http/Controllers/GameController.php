@@ -31,13 +31,19 @@ class GameController extends Controller
      * )
      */
     public function show(Request $request)
-    {
+    {        
         /*
         return response()->json(
             Game::all()
         );
         */
         $player = $request->user()->player;
+
+        if (!$player) {
+            return response()->json([
+                'message' => 'Usuário não possui player vinculado'
+            ], 422);
+        }
 
         $games = $player->games;
 
