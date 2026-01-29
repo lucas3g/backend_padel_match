@@ -162,4 +162,19 @@ class PlayerController extends Controller
 
         return response()->json($player);
     }
+
+    public function me(Request $request)
+    {
+        $player = $request->user()->player;
+
+        if (!$player) {
+            return response()->json([
+                'message' => 'Usuário não possui player vinculado'
+            ], 422);
+        } else {
+            return response()->json([
+                'message' => "Usuário vinculado ao player {$player->full_name}"
+            ], 200);
+        }
+    }
 }
