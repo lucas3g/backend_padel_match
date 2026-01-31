@@ -877,6 +877,39 @@
                     }
                 ]
             }
+        },
+        "/api/me/player": {
+            "get": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Player vinculado ao usuário",
+                "description": "Retorna se tem player vinculado ao usuário autenticado",
+                "operationId": "724b279740dca85168d3716dc038e628",
+                "responses": {
+                    "200": {
+                        "description": "Dados do player",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Usuário não possio player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "tags": [

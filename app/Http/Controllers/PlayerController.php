@@ -163,6 +163,29 @@ class PlayerController extends Controller
         return response()->json($player);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/me/player",
+     *     tags={"Player"},
+     *     summary="Player vinculado ao usuário",
+     *     description="Retorna se tem player vinculado ao usuário autenticado",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Dados do player",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Usuário não possio player vinculado"
+     *     )
+     * )
+     */
     public function me(Request $request)
     {
         $player = $request->user()->player;
@@ -172,9 +195,7 @@ class PlayerController extends Controller
                 'message' => 'Usuário não possui player vinculado'
             ], 422);
         } else {
-            return response()->json([
-                'message' => "Usuário vinculado ao player {$player->full_name}"
-            ], 200);
+            return response()->json($player, 200);
         }
     }
 }
