@@ -31,7 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
-    Route::get('/player', [PlayerController::class, 'show']);
+    Route::get('/player/{id?}', [PlayerController::class, 'show']);
     Route::post('/player', [PlayerController::class, 'store']);
     Route::put('/player', [PlayerController::class, 'update']);
     Route::get('me/player', [PlayerController::class, 'me']);

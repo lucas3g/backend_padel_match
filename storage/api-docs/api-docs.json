@@ -695,14 +695,14 @@
                 ]
             }
         },
-        "/api/player": {
+        "/api/player/id": {
             "get": {
                 "tags": [
                     "Player"
                 ],
-                "summary": "Exibe o player do usuário autenticado",
-                "description": "Retorna os dados do player associado ao usuário logado",
-                "operationId": "a5d7083065f0a61e14e38f7e7a45f86e",
+                "summary": "Exibe o player",
+                "description": "Retorna os dados do player solicitado pelo id",
+                "operationId": "cb4ef59d666f6630d465c848639befe1",
                 "responses": {
                     "200": {
                         "description": "Player encontrado",
@@ -726,7 +726,9 @@
                         "bearerAuth": []
                     }
                 ]
-            },
+            }
+        },
+        "/api/player": {
             "put": {
                 "tags": [
                     "Player"

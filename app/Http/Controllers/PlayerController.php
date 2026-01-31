@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Player;
 use Illuminate\Http\Request;
 
 /**
@@ -15,10 +16,10 @@ class PlayerController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/player",
+     *     path="/api/player/id",
      *     tags={"Player"},
-     *     summary="Exibe o player do usuário autenticado",
-     *     description="Retorna os dados do player associado ao usuário logado",
+     *     summary="Exibe o player",
+     *     description="Retorna os dados do player solicitado pelo id",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
@@ -36,10 +37,12 @@ class PlayerController extends Controller
      *     )
      * )
      */
-    public function show(Request $request)
+    public function show($id)
     {
+        $player = Player::find($id);
+
         return response()->json(
-            $request->user()->player
+            $player
         );
     }
 
