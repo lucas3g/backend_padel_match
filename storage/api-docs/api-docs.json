@@ -164,7 +164,8 @@
                     "Clubs"
                 ],
                 "summary": "Lista todos os clubes",
-                "operationId": "0792ba6636beacde2fa5b4fe9fb3f010",
+                "description": "Retorna os dados de todos os clubes cadastrados",
+                "operationId": "c44731a8866e74bcd14a6b4f0f1f82b6",
                 "responses": {
                     "200": {
                         "description": "Lista de clubes",
@@ -215,6 +216,36 @@
                     },
                     "422": {
                         "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/club/id": {
+            "get": {
+                "tags": [
+                    "Clubs"
+                ],
+                "summary": "Lista um clube",
+                "description": "Retorna os dados do clube solicitado pelo id",
+                "operationId": "fcc1725fc26e1f7800465548cef9700e",
+                "responses": {
+                    "200": {
+                        "description": "Lista de clubes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [

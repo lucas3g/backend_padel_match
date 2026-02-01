@@ -18,6 +18,8 @@ class ClubController extends Controller
      *     path="/api/clubs",
      *     tags={"Clubs"},
      *     summary="Lista todos os clubes",
+     *     description="Retorna os dados de todos os clubes cadastrados",
+     *
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
@@ -30,10 +32,37 @@ class ClubController extends Controller
      *     )
      * )
      */
-    public function show(Request $request)
+    public function index(Request $request)
     {
         return response()->json(
             Club::all()
+        );
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/club/id",
+     *     tags={"Clubs"},
+     *     summary="Lista um clube",
+     *     description="Retorna os dados do clube solicitado pelo id",
+     *
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de clubes",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function show(Request $request, $id)
+    {
+        $club = Club::find($id);
+        return response()->json(
+            $club
         );
     }
 
