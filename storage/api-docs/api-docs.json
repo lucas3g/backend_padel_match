@@ -524,11 +524,12 @@
                 "tags": [
                     "Games"
                 ],
-                "summary": "Lista todos as partidas",
-                "operationId": "961c8774f80a937cbd619e7084baa203",
+                "summary": "Lista partidas do usário",
+                "description": "Lista todas as partidas do usuário logado e quem está na partida",
+                "operationId": "589589f26003a22c288f69fb4ded72b0",
                 "responses": {
                     "200": {
-                        "description": "Lista as partidas",
+                        "description": "Dados da partida e players daquela partida",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -666,6 +667,36 @@
                     },
                     "422": {
                         "description": "Erro de validação"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/id": {
+            "get": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Lista uma partida",
+                "description": "Lista uma partida conforme id solicitado",
+                "operationId": "a97bf63cceaee3b8908a3d1854eddf6f",
+                "responses": {
+                    "200": {
+                        "description": "Lista a partida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [

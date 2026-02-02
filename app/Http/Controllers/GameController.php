@@ -17,12 +17,13 @@ class GameController extends Controller
      * @OA\Get(
      *     path="/api/game",
      *     tags={"Games"},
-     *     summary="Lista todos as partidas",
+     *     summary="Lista partidas do usário",
+     *     description="Lista todas as partidas do usuário logado e quem está na partida",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
      *         response=200,
-     *         description="Lista as partidas",
+     *         description="Dados da partida e players daquela partida",
      *         @OA\JsonContent(
      *             type="array",
      *             @OA\Items(type="object")
@@ -30,12 +31,11 @@ class GameController extends Controller
      *     )
      * )
      */
-    public function show(Request $request)
-    {        
+    public function index(Request $request)
+    {
         /*
-        return response()->json(
-            Game::all()
-        );
+        $games = Game::all();
+        return response()->json($games);
         */
         $player = $request->user()->player;
 
@@ -45,17 +45,46 @@ class GameController extends Controller
             ], 422);
         }
 
-        $games = $player->games;
+        $games = $player->games()
+            ->where('status', 'open')
+            ->with([
+                'players:id,full_name,level,side', //define colunas para retornar
+                'owner:id,full_name'
+            ])
+            ->get();
 
-        /*
-        $playerId = $request->user()->player->id;
-
-        return response()->json($playerId);
-        exit();
-
-        $games = Game::where('player_id', $playerId)->get();
-        */
         return response()->json($games);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/game/id",
+     *     tags={"Games"},
+     *     summary="Lista uma partida",
+     *     description="Lista uma partida conforme id solicitado",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista a partida",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function show(Request $request, $id)
+    {
+        $game = Game::with([
+            'players:id,full_name,level,side', //define colunas para retornar
+            'owner:id,full_name'
+            // assim retorna tudo 'players', 'owner'
+        ])
+            ->where('status', 'open') //apenas partidas abertas
+            ->findOrFail($id);
+
+        return response()->json($game);
     }
 
     /**
