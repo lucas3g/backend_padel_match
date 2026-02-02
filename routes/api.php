@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\ClubController;
+use App\Http\Controllers\ClubCourtController;
 use App\Http\Controllers\CourtController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GamePlayerController;
@@ -37,7 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('me/player', [PlayerController::class, 'me']);
 
     Route::get('/clubs', [ClubController::class, 'index']);
-    Route::get('/club/{id?}', [ClubController::class, 'show']);
+    Route::get('/club/{id}', [ClubController::class, 'show']);
     Route::post('/club', [ClubController::class, 'store']);
     Route::put('/club/{id}', [ClubController::class, 'update']);
 
@@ -45,6 +46,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/court', [CourtController::class, 'store']);
     Route::put('/court/{id}', [CourtController::class, 'update']);
 
+    Route::get('/club/{club}/courts', [ClubCourtController::class, 'index']);
+    
     Route::get('/game', [GameController::class, 'index']);
     Route::get('/game/{id}', [GameController::class, 'show']);
     Route::post('/game', [GameController::class, 'store']);

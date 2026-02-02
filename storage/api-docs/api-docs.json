@@ -304,17 +304,47 @@
                 ]
             }
         },
-        "/api/courts": {
+        "/api/club/id/courts": {
+            "get": {
+                "tags": [
+                    "Club/Courts"
+                ],
+                "summary": "Lista as quadras de um clube",
+                "description": "lista os dados das quadras de um clube solicitado pelo id",
+                "operationId": "edc706e835d3eacea25e0d8f6a9397ff",
+                "responses": {
+                    "200": {
+                        "description": "Lista as quadras de um clube",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/court/id": {
             "get": {
                 "tags": [
                     "Courts"
                 ],
-                "summary": "Lista todas as quadras",
-                "description": "Retorna todas as quadras cadastradas",
-                "operationId": "98dc9e251e46b5d33680f24387232209",
+                "summary": "Lista uma quadra",
+                "description": "Lista uma quadra conforme id solicitado",
+                "operationId": "6de2dd156c10157e91a5fdc4af7a3c8c",
                 "responses": {
                     "200": {
-                        "description": "Lista de quadras",
+                        "description": "Lista a quadra",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -335,7 +365,9 @@
                         "bearerAuth": []
                     }
                 ]
-            },
+            }
+        },
+        "/api/courts": {
             "post": {
                 "tags": [
                     "Courts"
@@ -996,6 +1028,10 @@
         {
             "name": "Player",
             "description": "Gerenciamento do perfil do jogador"
+        },
+        {
+            "name": "Club/Courts",
+            "description": "Club/Courts"
         }
     ]
 }

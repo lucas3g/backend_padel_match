@@ -17,15 +17,15 @@ class CourtController extends Controller
 
     /**
      * @OA\Get(
-     *     path="/api/courts",
+     *     path="/api/court/id",
      *     tags={"Courts"},
-     *     summary="Lista todas as quadras",
-     *     description="Retorna todas as quadras cadastradas",
+     *     summary="Lista uma quadra",
+     *     description="Lista uma quadra conforme id solicitado",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
      *         response=200,
-     *         description="Lista de quadras",
+     *         description="Lista a quadra",
      *         @OA\JsonContent(
      *             type="array",
      *             @OA\Items(type="object")
@@ -38,10 +38,12 @@ class CourtController extends Controller
      *     )
      * )
      */
-    public function show(Request $request)
+    public function show(Request $request, $id)
     {
+        $court = Court::find($id);
+
         return response()->json(
-            Court::all()
+            $court
         );
     }
 

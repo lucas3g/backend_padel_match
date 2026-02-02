@@ -20,9 +20,9 @@ class Court extends Model
         'rating',
         'total_reviews',
         'active'
-    ];    
+    ];
 
-     public function club()
+    public function club()
     {
         return $this->belongsTo(Club::class);
     }
