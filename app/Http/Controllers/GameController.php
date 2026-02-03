@@ -86,11 +86,17 @@ class GameController extends Controller
     {
         $game = Game::with([
             'players:id,full_name,level,side', //define colunas para retornar
-            'owner:id,full_name'
-            // assim retorna tudo 'players', 'owner'
+            'owner:id,full_name',
+            'club:id,name,city,state',
+            'court:id,club_id,name,type,covered'
         ])
             ->where('status', 'open') //apenas partidas abertas
             ->findOrFail($id);
+
+        $game->makeHidden(['created_at', 'updated_at']);
+        $game->players->each(function ($player) {
+            $player->pivot->makeHidden(['created_at', 'updated_at']);
+        });
 
         return response()->json($game);
     }
