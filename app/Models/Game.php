@@ -29,6 +29,16 @@ class Game extends Model
         'duration_minutes'                 
     ];    
 
+    public function club()
+    {
+        return $this->belongsTo(Club::class);
+    }
+
+    public function court()
+    {
+        return $this->belongsTo(Court::class);
+    }
+
     public function owner()
     {
         return $this->belongsTo(Player::class, 'owner_player_id');

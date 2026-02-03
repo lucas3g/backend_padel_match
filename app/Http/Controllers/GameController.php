@@ -49,7 +49,9 @@ class GameController extends Controller
             ->where('status', 'open')
             ->with([
                 'players:id,full_name,level,side', //define colunas para retornar
-                'owner:id,full_name'
+                'owner:id,full_name',
+                'club:id,name,city,state',
+                'court:id,club_id,name,type,covered'
             ])
             ->get();
 
