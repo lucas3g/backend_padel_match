@@ -53,7 +53,13 @@ class GameController extends Controller
                 'club:id,name,city,state',
                 'court:id,club_id,name,type,covered'
             ])
-            ->get();
+            ->get()
+            ->each(function ($game) {
+                $game->makeHidden(['created_at', 'updated_at']);
+                $game->players->each(function ($player) {
+                    $player->pivot->makeHidden(['created_at', 'updated_at']);
+                });
+            });
 
         return response()->json($games);
     }
