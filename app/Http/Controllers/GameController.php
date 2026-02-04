@@ -185,9 +185,63 @@ class GameController extends Controller
         );
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/game/{game}/join",
+     *     tags={"Games"},
+     *     summary="Entrar em uma partida",
+     *     description="Adiciona o player do usuário autenticado a uma partida existente",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="game",
+     *         in="path",
+     *         required=true,
+     *         description="ID da partida",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Entrou na partida com sucesso",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Entrou na partida")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro de validação"
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="Partida não encontrada"
+     *     )
+     * )
+     */
     public function join(Request $request, Game $game)
     {
         $player = $request->user()->player;
+
+        if (!$player) {
+            return response()->json([
+                'message' => 'Usuário não possui player vinculado'
+            ], 422);
+        }
+
+        if ($game->status !== 'open') {
+            return response()->json([
+                'message' => 'Esta partida não está aberta para novos jogadores'
+            ], 422);
+        }
+
+        if ($game->max_players && $game->players()->count() >= $game->max_players) {
+            return response()->json([
+                'message' => 'A partida já atingiu o número máximo de jogadores'
+            ], 422);
+        }
 
         $game->players()->syncWithoutDetaching([
             $player->id => ['joined_at' => now()]

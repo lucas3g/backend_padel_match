@@ -5,7 +5,7 @@ use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubCourtController;
 use App\Http\Controllers\CourtController;
 use App\Http\Controllers\GameController;
-use App\Http\Controllers\GamePlayerController;
+
 use App\Http\Controllers\PlayerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -51,7 +51,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/game', [GameController::class, 'index']);
     Route::get('/game/{id}', [GameController::class, 'show']);
     Route::post('/game', [GameController::class, 'store']);
-    Route::put('/game/{id}', [GameController::class, 'update']);   
-
-    Route::post('/gameplayer/{game}/players', [GamePlayerController::class, 'store']);
+    Route::put('/game/{id}', [GameController::class, 'update']);
+    Route::post('/game/{game}/join', [GameController::class, 'join']);
 });
