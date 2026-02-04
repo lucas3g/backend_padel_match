@@ -75,7 +75,25 @@ class ClubController extends Controller
      *
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             required={"name","description"},
+     *             @OA\Property(property="name", type="string", maxLength=200, example="Clube Padel Center"),
+     *             @OA\Property(property="description", type="string", maxLength=700, example="Clube de padel com quadras cobertas"),
+     *             @OA\Property(property="document", type="string", example="12345678000199"),
+     *             @OA\Property(property="email", type="string", format="email", maxLength=150, example="contato@padelcenter.com"),
+     *             @OA\Property(property="phone", type="string", maxLength=15, example="(49) 3333-3333"),
+     *             @OA\Property(property="whatsapp", type="string", maxLength=15, example="(49) 99999-9999"),
+     *             @OA\Property(property="address", type="string", maxLength=255, example="Rua das Quadras, 100"),
+     *             @OA\Property(property="city", type="string", maxLength=100, example="Chapecó"),
+     *             @OA\Property(property="state", type="string", maxLength=2, example="SC"),
+     *             @OA\Property(property="zip_code", type="string", maxLength=20, example="89801-000"),
+     *             @OA\Property(property="neighborhood", type="string", maxLength=50, example="Centro"),
+     *             @OA\Property(property="latitude", type="number", format="float", example=-27.1006),
+     *             @OA\Property(property="longitude", type="number", format="float", example=-52.6153),
+     *             @OA\Property(property="open_time", type="string", example="08:00"),
+     *             @OA\Property(property="close_time", type="string", example="22:00"),
+     *             @OA\Property(property="active", type="boolean", example=true)
+     *         )
      *     ),
      *
      *     @OA\Response(
@@ -138,7 +156,25 @@ class ClubController extends Controller
      *
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             required={"name","description"},
+     *             @OA\Property(property="name", type="string", maxLength=200, example="Clube Padel Center"),
+     *             @OA\Property(property="description", type="string", maxLength=700, example="Clube de padel com quadras cobertas"),
+     *             @OA\Property(property="document", type="string", example="12345678000199"),
+     *             @OA\Property(property="email", type="string", format="email", maxLength=150, example="contato@padelcenter.com"),
+     *             @OA\Property(property="phone", type="string", maxLength=15, example="(49) 3333-3333"),
+     *             @OA\Property(property="whatsapp", type="string", maxLength=15, example="(49) 99999-9999"),
+     *             @OA\Property(property="address", type="string", maxLength=255, example="Rua das Quadras, 100"),
+     *             @OA\Property(property="city", type="string", maxLength=100, example="Chapecó"),
+     *             @OA\Property(property="state", type="string", maxLength=2, example="SC"),
+     *             @OA\Property(property="zip_code", type="string", maxLength=20, example="89801-000"),
+     *             @OA\Property(property="neighborhood", type="string", maxLength=50, example="Centro"),
+     *             @OA\Property(property="latitude", type="number", format="float", example=-27.1006),
+     *             @OA\Property(property="longitude", type="number", format="float", example=-52.6153),
+     *             @OA\Property(property="open_time", type="string", example="08:00"),
+     *             @OA\Property(property="close_time", type="string", example="22:00"),
+     *             @OA\Property(property="active", type="boolean", example=true)
+     *         )
      *     ),
      *
      *     @OA\Response(
