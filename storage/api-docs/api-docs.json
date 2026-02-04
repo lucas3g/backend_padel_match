@@ -198,6 +198,89 @@
                     "content": {
                         "application/json": {
                             "schema": {
+                                "required": [
+                                    "name",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 200,
+                                        "example": "Clube Padel Center"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "maxLength": 700,
+                                        "example": "Clube de padel com quadras cobertas"
+                                    },
+                                    "document": {
+                                        "type": "string",
+                                        "example": "12345678000199"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "maxLength": 150,
+                                        "example": "contato@padelcenter.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "maxLength": 15,
+                                        "example": "(49) 3333-3333"
+                                    },
+                                    "whatsapp": {
+                                        "type": "string",
+                                        "maxLength": 15,
+                                        "example": "(49) 99999-9999"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Rua das Quadras, 100"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "Chapecó"
+                                    },
+                                    "state": {
+                                        "type": "string",
+                                        "maxLength": 2,
+                                        "example": "SC"
+                                    },
+                                    "zip_code": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "89801-000"
+                                    },
+                                    "neighborhood": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "Centro"
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -27.1006
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -52.6153
+                                    },
+                                    "open_time": {
+                                        "type": "string",
+                                        "example": "08:00"
+                                    },
+                                    "close_time": {
+                                        "type": "string",
+                                        "example": "22:00"
+                                    },
+                                    "active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
                                 "type": "object"
                             }
                         }
@@ -277,6 +360,89 @@
                     "content": {
                         "application/json": {
                             "schema": {
+                                "required": [
+                                    "name",
+                                    "description"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 200,
+                                        "example": "Clube Padel Center"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "maxLength": 700,
+                                        "example": "Clube de padel com quadras cobertas"
+                                    },
+                                    "document": {
+                                        "type": "string",
+                                        "example": "12345678000199"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "maxLength": 150,
+                                        "example": "contato@padelcenter.com"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "maxLength": 15,
+                                        "example": "(49) 3333-3333"
+                                    },
+                                    "whatsapp": {
+                                        "type": "string",
+                                        "maxLength": 15,
+                                        "example": "(49) 99999-9999"
+                                    },
+                                    "address": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Rua das Quadras, 100"
+                                    },
+                                    "city": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "Chapecó"
+                                    },
+                                    "state": {
+                                        "type": "string",
+                                        "maxLength": 2,
+                                        "example": "SC"
+                                    },
+                                    "zip_code": {
+                                        "type": "string",
+                                        "maxLength": 20,
+                                        "example": "89801-000"
+                                    },
+                                    "neighborhood": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "Centro"
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -27.1006
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": -52.6153
+                                    },
+                                    "open_time": {
+                                        "type": "string",
+                                        "example": "08:00"
+                                    },
+                                    "close_time": {
+                                        "type": "string",
+                                        "example": "22:00"
+                                    },
+                                    "active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
                                 "type": "object"
                             }
                         }
@@ -729,6 +895,56 @@
                                 }
                             }
                         }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/{game}/join": {
+            "post": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Entrar em uma partida",
+                "description": "Adiciona o player do usuário autenticado a uma partida existente",
+                "operationId": "96260be77e54da944cd23835ea889061",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Entrou na partida com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Entrou na partida"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Erro de validação"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
                     }
                 },
                 "security": [
