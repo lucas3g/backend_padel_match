@@ -53,4 +53,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/game', [GameController::class, 'store']);
     Route::put('/game/{id}', [GameController::class, 'update']);
     Route::post('/game/{game}/join', [GameController::class, 'join']);
+    Route::post('/game/{game}/leave', [GameController::class, 'leave']);
 });

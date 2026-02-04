@@ -11,5 +11,14 @@ services:
       POSTGRES_PASSWORD: laravel123 
       POSTGRES_DB: laravel_db
       PGDATA: /data/postgres
-    volumes: 
+    volumes:
       - ./data/pg:/data/postgres
+
+  redis:
+    container_name: laravel_redis
+    image: redis:7-alpine
+    ports:
+      - 6379:6379
+    volumes:
+      - ./data/redis:/data
+    command: redis-server --appendonly yes

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\PlayerJoinedGame;
+use App\Events\PlayerLeftGame;
 use App\Models\Game;
 use Illuminate\Http\Request;
 
@@ -247,8 +249,84 @@ class GameController extends Controller
             $player->id => ['joined_at' => now()]
         ]);
 
+        // Broadcast para todos os participantes da partida
+        event(new PlayerJoinedGame($game, $player));
+
+        // Atualiza status para 'full' quando atingir max_players
+        if ($game->max_players && $game->players()->count() >= $game->max_players) {
+            $game->update(['status' => 'full']);
+        }
+
         return response()->json([
             'message' => 'Entrou na partida'
+        ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/game/{game}/leave",
+     *     tags={"Games"},
+     *     summary="Sair de uma partida",
+     *     description="Remove o player do usuário autenticado de uma partida existente. O criador da partida não pode sair.",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="game",
+     *         in="path",
+     *         required=true,
+     *         description="ID da partida",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Saiu da partida com sucesso",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="message", type="string", example="Saiu da partida")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=422,
+     *         description="Erro de validação"
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="Partida não encontrada"
+     *     )
+     * )
+     */
+    public function leave(Request $request, Game $game)
+    {
+        $player = $request->user()->player;
+
+        if (!$player) {
+            return response()->json([
+                'message' => 'Usuário não possui player vinculado'
+            ], 422);
+        }
+
+        // O criador da partida não pode sair (deve cancelar a partida)
+        if ($game->owner_player_id === $player->id) {
+            return response()->json([
+                'message' => 'O criador da partida não pode sair. Cancele a partida.'
+            ], 422);
+        }
+
+        $game->players()->detach($player->id);
+
+        // Broadcast para todos os participantes restantes
+        event(new PlayerLeftGame($game, $player));
+
+        // Se a partida estava cheia e alguém saiu, reabrir
+        if ($game->status === 'full') {
+            $game->update(['status' => 'open']);
+        }
+
+        return response()->json([
+            'message' => 'Saiu da partida'
         ]);
     }
 
