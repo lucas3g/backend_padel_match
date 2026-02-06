@@ -217,6 +217,10 @@ class GameController extends Controller
      *         description="Usuário não possui player vinculado"
      *     ),
      *     @OA\Response(
+     *         response=403,
+     *         description="Partida privada - acesso não permitido"
+     *     ),
+     *     @OA\Response(
      *         response=404,
      *         description="Partida não encontrada"
      *     ),
@@ -234,6 +238,12 @@ class GameController extends Controller
             return response()->json([
                 'message' => 'Usuário não possui player vinculado'
             ], 400);
+        }
+
+        if ($game->type !== 'public') {
+            return response()->json([
+                'message' => 'Não é possível entrar em partidas privadas'
+            ], 403);
         }
 
         if ($game->status !== 'open') {
