@@ -49,6 +49,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/club/{club}/courts', [ClubCourtController::class, 'index']);
     
     Route::get('/game', [GameController::class, 'index']);
+    Route::get('/game/available', [GameController::class, 'available']);
     Route::get('/game/{id}', [GameController::class, 'show']);
     Route::post('/game', [GameController::class, 'store']);
     Route::put('/game/{id}', [GameController::class, 'update']);

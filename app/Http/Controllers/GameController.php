@@ -68,6 +68,59 @@ class GameController extends Controller
 
     /**
      * @OA\Get(
+     *     path="/api/game/available",
+     *     tags={"Games"},
+     *     summary="Lista partidas públicas disponíveis",
+     *     description="Retorna todas as partidas públicas com status open onde o usuário logado não é o criador",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de partidas públicas disponíveis",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=400,
+     *         description="Usuário não possui player vinculado"
+     *     )
+     * )
+     */
+    public function available(Request $request)
+    {
+        $player = $request->user()->player;
+
+        if (!$player) {
+            return response()->json([
+                'message' => 'Usuário não possui player vinculado'
+            ], 400);
+        }
+
+        $games = Game::where('type', 'public')
+            ->where('status', 'open')
+            ->where('owner_player_id', '!=', $player->id)
+            ->with([
+                'players:id,full_name,level,side',
+                'owner:id,full_name',
+                'club:id,name,city,state',
+                'court:id,club_id,name,type,covered'
+            ])
+            ->get()
+            ->each(function ($game) {
+                $game->makeHidden(['created_at', 'updated_at']);
+                $game->players->each(function ($player) {
+                    $player->pivot->makeHidden(['created_at', 'updated_at']);
+                });
+            });
+
+        return response()->json($games);
+    }
+
+    /**
+     * @OA\Get(
      *     path="/api/game/id",
      *     tags={"Games"},
      *     summary="Lista uma partida",

@@ -318,17 +318,17 @@
                 "operationId": "fcc1725fc26e1f7800465548cef9700e",
                 "responses": {
                     "200": {
-                        "description": "Lista de clubes",
+                        "description": "Dados do clube",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
+                                    "type": "object"
                                 }
                             }
                         }
+                    },
+                    "404": {
+                        "description": "Clube não encontrado"
                     }
                 },
                 "security": [
@@ -510,20 +510,20 @@
                 "operationId": "6de2dd156c10157e91a5fdc4af7a3c8c",
                 "responses": {
                     "200": {
-                        "description": "Lista a quadra",
+                        "description": "Dados da quadra",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object"
-                                    }
+                                    "type": "object"
                                 }
                             }
                         }
                     },
                     "401": {
                         "description": "Usuário não autenticado"
+                    },
+                    "404": {
+                        "description": "Quadra não encontrada"
                     }
                 },
                 "security": [
@@ -874,6 +874,39 @@
                 ]
             }
         },
+        "/api/game/available": {
+            "get": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Lista partidas públicas disponíveis",
+                "description": "Retorna todas as partidas públicas com status open onde o usuário logado não é o criador",
+                "operationId": "72be6a94a6467ddf1870ca68fa973f57",
+                "responses": {
+                    "200": {
+                        "description": "Lista de partidas públicas disponíveis",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/game/id": {
             "get": {
                 "tags": [
@@ -940,11 +973,70 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Erro de validação"
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "403": {
+                        "description": "Partida privada - acesso não permitido"
                     },
                     "404": {
                         "description": "Partida não encontrada"
+                    },
+                    "409": {
+                        "description": "Conflito - partida fechada ou cheia"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/{game}/leave": {
+            "post": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Sair de uma partida",
+                "description": "Remove o player do usuário autenticado de uma partida existente. O criador da partida não pode sair.",
+                "operationId": "810805e8ba059b9901bdf34e6701ecc8",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Saiu da partida com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Saiu da partida"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    },
+                    "409": {
+                        "description": "Conflito - criador não pode sair da partida"
                     }
                 },
                 "security": [
@@ -1179,7 +1271,10 @@
                             }
                         }
                     },
-                    "422": {
+                    "404": {
+                        "description": "Jogador não encontrado"
+                    },
+                    "409": {
                         "description": "Usuário já possui um player cadastrado"
                     }
                 },
@@ -1212,8 +1307,8 @@
                             }
                         }
                     },
-                    "422": {
-                        "description": "Usuário não possio player vinculado"
+                    "404": {
+                        "description": "Usuário não possui player vinculado"
                     }
                 },
                 "security": [
