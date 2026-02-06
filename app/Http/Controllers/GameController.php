@@ -44,7 +44,7 @@ class GameController extends Controller
         if (!$player) {
             return response()->json([
                 'message' => 'Usuário não possui player vinculado'
-            ], 422);
+            ], 400);
         }
 
         $games = $player->games()
@@ -169,7 +169,7 @@ class GameController extends Controller
         if (!$player) {
             return response()->json([
                 'message' => 'Usuário não possui player vinculado'
-            ], 422);
+            ], 400);
         }
 
         $game = new Game($data);
@@ -213,13 +213,16 @@ class GameController extends Controller
      *     ),
      *
      *     @OA\Response(
-     *         response=422,
-     *         description="Erro de validação"
+     *         response=400,
+     *         description="Usuário não possui player vinculado"
      *     ),
-     *
      *     @OA\Response(
      *         response=404,
      *         description="Partida não encontrada"
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Conflito - partida fechada ou cheia"
      *     )
      * )
      */
@@ -230,19 +233,19 @@ class GameController extends Controller
         if (!$player) {
             return response()->json([
                 'message' => 'Usuário não possui player vinculado'
-            ], 422);
+            ], 400);
         }
 
         if ($game->status !== 'open') {
             return response()->json([
                 'message' => 'Esta partida não está aberta para novos jogadores'
-            ], 422);
+            ], 409);
         }
 
         if ($game->max_players && $game->players()->count() >= $game->max_players) {
             return response()->json([
                 'message' => 'A partida já atingiu o número máximo de jogadores'
-            ], 422);
+            ], 409);
         }
 
         $game->players()->syncWithoutDetaching([
@@ -288,13 +291,16 @@ class GameController extends Controller
      *     ),
      *
      *     @OA\Response(
-     *         response=422,
-     *         description="Erro de validação"
+     *         response=400,
+     *         description="Usuário não possui player vinculado"
      *     ),
-     *
      *     @OA\Response(
      *         response=404,
      *         description="Partida não encontrada"
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Conflito - criador não pode sair da partida"
      *     )
      * )
      */
@@ -305,14 +311,14 @@ class GameController extends Controller
         if (!$player) {
             return response()->json([
                 'message' => 'Usuário não possui player vinculado'
-            ], 422);
+            ], 400);
         }
 
         // O criador da partida não pode sair (deve cancelar a partida)
         if ($game->owner_player_id === $player->id) {
             return response()->json([
                 'message' => 'O criador da partida não pode sair. Cancele a partida.'
-            ], 422);
+            ], 409);
         }
 
         $game->players()->detach($player->id);

@@ -50,20 +50,26 @@ class ClubController extends Controller
      *
      *     @OA\Response(
      *         response=200,
-     *         description="Lista de clubes",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
+     *         description="Dados do clube",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Clube não encontrado"
      *     )
      * )
      */
     public function show(Request $request, $id)
     {
         $club = Club::find($id);
-        return response()->json(
-            $club
-        );
+
+        if (!$club) {
+            return response()->json([
+                'message' => 'Clube não encontrado'
+            ], 404);
+        }
+
+        return response()->json($club, 200);
     }
 
     /**

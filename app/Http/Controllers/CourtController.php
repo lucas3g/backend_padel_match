@@ -25,16 +25,16 @@ class CourtController extends Controller
      *
      *     @OA\Response(
      *         response=200,
-     *         description="Lista a quadra",
-     *         @OA\JsonContent(
-     *             type="array",
-     *             @OA\Items(type="object")
-     *         )
+     *         description="Dados da quadra",
+     *         @OA\JsonContent(type="object")
      *     ),
-     *
      *     @OA\Response(
      *         response=401,
      *         description="Usuário não autenticado"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Quadra não encontrada"
      *     )
      * )
      */
@@ -42,9 +42,13 @@ class CourtController extends Controller
     {
         $court = Court::find($id);
 
-        return response()->json(
-            $court
-        );
+        if (!$court) {
+            return response()->json([
+                'message' => 'Quadra não encontrada'
+            ], 404);
+        }
+
+        return response()->json($court, 200);
     }
 
     /**

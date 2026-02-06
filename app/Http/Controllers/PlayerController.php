@@ -41,9 +41,13 @@ class PlayerController extends Controller
     {
         $player = Player::find($id);
 
-        return response()->json(
-            $player
-        );
+        if (!$player) {
+            return response()->json([
+                'message' => 'Jogador não encontrado'
+            ], 404);
+        }
+
+        return response()->json($player, 200);
     }
 
     /**
@@ -74,7 +78,11 @@ class PlayerController extends Controller
      *     ),
      *
      *     @OA\Response(
-     *         response=422,
+     *         response=404,
+     *         description="Jogador não encontrado"
+     *     ),
+     *     @OA\Response(
+     *         response=409,
      *         description="Usuário já possui um player cadastrado"
      *     )
      * )
@@ -84,7 +92,7 @@ class PlayerController extends Controller
         if ($request->user()->player) {
             return response()->json([
                 'message' => 'Usuário já possui um player cadastrado'
-            ], 422);
+            ], 409);
         }
 
         $data = $request->validate([
@@ -184,8 +192,8 @@ class PlayerController extends Controller
      *     ),
      *
      *     @OA\Response(
-     *         response=422,
-     *         description="Usuário não possio player vinculado"
+     *         response=404,
+     *         description="Usuário não possui player vinculado"
      *     )
      * )
      */
@@ -196,9 +204,9 @@ class PlayerController extends Controller
         if (!$player) {
             return response()->json([
                 'message' => 'Usuário não possui player vinculado'
-            ], 422);
-        } else {
-            return response()->json($player, 200);
+            ], 404);
         }
+
+        return response()->json($player, 200);
     }
 }
