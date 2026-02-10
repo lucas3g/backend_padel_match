@@ -180,11 +180,11 @@
                     {
                         "name": "city",
                         "in": "query",
-                        "description": "Filtrar por cidade (busca parcial)",
+                        "description": "Filtrar por código IBGE do município",
                         "required": false,
                         "schema": {
-                            "type": "string",
-                            "example": "Chapecó"
+                            "type": "integer",
+                            "example": 4204202
                         }
                     },
                     {
@@ -272,9 +272,9 @@
                                         "example": "Rua das Quadras, 100"
                                     },
                                     "city": {
-                                        "type": "string",
-                                        "maxLength": 100,
-                                        "example": "Chapecó"
+                                        "description": "Código IBGE do município",
+                                        "type": "integer",
+                                        "example": 4204202
                                     },
                                     "state": {
                                         "type": "string",
@@ -434,9 +434,9 @@
                                         "example": "Rua das Quadras, 100"
                                     },
                                     "city": {
-                                        "type": "string",
-                                        "maxLength": 100,
-                                        "example": "Chapecó"
+                                        "description": "Código IBGE do município",
+                                        "type": "integer",
+                                        "example": 4204202
                                     },
                                     "state": {
                                         "type": "string",

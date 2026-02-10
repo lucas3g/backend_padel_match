@@ -33,8 +33,8 @@ class ClubController extends Controller
      *         name="city",
      *         in="query",
      *         required=false,
-     *         description="Filtrar por cidade (busca parcial)",
-     *         @OA\Schema(type="string", example="Chapecó")
+     *         description="Filtrar por código IBGE do município",
+     *         @OA\Schema(type="integer", example=4204202)
      *     ),
      *     @OA\Parameter(
      *         name="state",
@@ -57,8 +57,9 @@ class ClubController extends Controller
     public function index(Request $request)
     {
         $clubs = Club::query()
+            ->with('municipio:codigo_ibge,descricao,uf,id_uf')
             ->when($request->query('name'), fn ($q, $name) => $q->where('name', 'like', "%{$name}%"))
-            ->when($request->query('city'), fn ($q, $city) => $q->where('city', 'like', "%{$city}%"))
+            ->when($request->query('city'), fn ($q, $city) => $q->where('city', $city))
             ->when($request->query('state'), fn ($q, $state) => $q->where('state', $state))
             ->get();
 
@@ -87,7 +88,7 @@ class ClubController extends Controller
      */
     public function show(Request $request, $id)
     {
-        $club = Club::find($id);
+        $club = Club::with('municipio:codigo_ibge,descricao,uf,id_uf')->find($id);
 
         if (!$club) {
             return response()->json([
@@ -116,7 +117,7 @@ class ClubController extends Controller
      *             @OA\Property(property="phone", type="string", maxLength=15, example="(49) 3333-3333"),
      *             @OA\Property(property="whatsapp", type="string", maxLength=15, example="(49) 99999-9999"),
      *             @OA\Property(property="address", type="string", maxLength=255, example="Rua das Quadras, 100"),
-     *             @OA\Property(property="city", type="string", maxLength=100, example="Chapecó"),
+     *             @OA\Property(property="city", type="integer", example=4204202, description="Código IBGE do município"),
      *             @OA\Property(property="state", type="string", maxLength=2, example="SC"),
      *             @OA\Property(property="zip_code", type="string", maxLength=20, example="89801-000"),
      *             @OA\Property(property="neighborhood", type="string", maxLength=50, example="Centro"),
@@ -150,7 +151,7 @@ class ClubController extends Controller
             'phone'         => 'nullable|string|max:15',
             'whatsapp'      => 'nullable|string|max:15',
             'address'       => 'nullable|string|max:255',
-            'city'          => 'nullable|string|max:100',
+            'city'          => 'nullable|integer|exists:municipios,codigo_ibge',
             'state'         => 'nullable|string|max:2',
             'zip_code'      => 'nullable|string|max:20',
             'neighborhood'  => 'nullable|string|max:50',
@@ -197,7 +198,7 @@ class ClubController extends Controller
      *             @OA\Property(property="phone", type="string", maxLength=15, example="(49) 3333-3333"),
      *             @OA\Property(property="whatsapp", type="string", maxLength=15, example="(49) 99999-9999"),
      *             @OA\Property(property="address", type="string", maxLength=255, example="Rua das Quadras, 100"),
-     *             @OA\Property(property="city", type="string", maxLength=100, example="Chapecó"),
+     *             @OA\Property(property="city", type="integer", example=4204202, description="Código IBGE do município"),
      *             @OA\Property(property="state", type="string", maxLength=2, example="SC"),
      *             @OA\Property(property="zip_code", type="string", maxLength=20, example="89801-000"),
      *             @OA\Property(property="neighborhood", type="string", maxLength=50, example="Centro"),
@@ -239,7 +240,7 @@ class ClubController extends Controller
             'phone'         => 'nullable|string|max:15',
             'whatsapp'      => 'nullable|string|max:15',
             'address'       => 'nullable|string|max:255',
-            'city'          => 'nullable|string|max:100',
+            'city'          => 'nullable|integer|exists:municipios,codigo_ibge',
             'state'         => 'nullable|string|max:2',
             'zip_code'      => 'nullable|string|max:20',
             'neighborhood'  => 'nullable|string|max:50',

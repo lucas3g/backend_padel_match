@@ -34,6 +34,11 @@ class Club extends Model
         'longitude' => 'float',
     ];
 
+    public function municipio()
+    {
+        return $this->belongsTo(Municipio::class, 'city', 'codigo_ibge');
+    }
+
     public function courts()
     {
         return $this->hasMany(Court::class);
