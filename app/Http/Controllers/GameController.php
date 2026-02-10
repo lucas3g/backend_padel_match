@@ -19,9 +19,45 @@ class GameController extends Controller
      * @OA\Get(
      *     path="/api/game",
      *     tags={"Games"},
-     *     summary="Lista partidas do usário",
-     *     description="Lista todas as partidas do usuário logado e quem está na partida",
+     *     summary="Lista partidas do usuário",
+     *     description="Lista as partidas do usuário logado com filtros opcionais. Se status não for informado, retorna apenas partidas com status 'open'.",
      *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="data_time",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por data da partida (formato: YYYY-MM-DD)",
+     *         @OA\Schema(type="string", format="date", example="2026-02-10")
+     *     ),
+     *     @OA\Parameter(
+     *         name="club_id",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por ID do clube",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="min_level",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por nível mínimo da partida",
+     *         @OA\Schema(type="integer", example=2)
+     *     ),
+     *     @OA\Parameter(
+     *         name="max_level",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por nível máximo da partida",
+     *         @OA\Schema(type="integer", example=4)
+     *     ),
+     *     @OA\Parameter(
+     *         name="status",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por status da partida (padrão: open)",
+     *         @OA\Schema(type="string", enum={"open","full","in_progress","completed","canceled"}, example="open")
+     *     ),
      *
      *     @OA\Response(
      *         response=200,
@@ -35,10 +71,6 @@ class GameController extends Controller
      */
     public function index(Request $request)
     {
-        /*
-        $games = Game::all();
-        return response()->json($games);
-        */
         $player = $request->user()->player;
 
         if (!$player) {
@@ -48,9 +80,13 @@ class GameController extends Controller
         }
 
         $games = $player->games()
-            ->where('status', 'open')
+            ->where('status', $request->query('status', 'open'))
+            ->when($request->query('data_time'), fn ($q, $date) => $q->whereDate('data_time', $date))
+            ->when($request->query('club_id'), fn ($q, $clubId) => $q->where('club_id', $clubId))
+            ->when($request->query('min_level'), fn ($q, $level) => $q->where('min_level', '>=', $level))
+            ->when($request->query('max_level'), fn ($q, $level) => $q->where('max_level', '<=', $level))
             ->with([
-                'players:id,full_name,level,side', //define colunas para retornar
+                'players:id,full_name,level,side',
                 'owner:id,full_name',
                 'club:id,name,city,state',
                 'court:id,club_id,name,type,covered'

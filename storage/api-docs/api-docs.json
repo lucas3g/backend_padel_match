@@ -164,8 +164,41 @@
                     "Clubs"
                 ],
                 "summary": "Lista todos os clubes",
-                "description": "Retorna os dados de todos os clubes cadastrados",
+                "description": "Retorna os dados de todos os clubes cadastrados, com filtros opcionais",
                 "operationId": "c44731a8866e74bcd14a6b4f0f1f82b6",
+                "parameters": [
+                    {
+                        "name": "name",
+                        "in": "query",
+                        "description": "Filtrar por nome do clube (busca parcial)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "Padel"
+                        }
+                    },
+                    {
+                        "name": "city",
+                        "in": "query",
+                        "description": "Filtrar por cidade (busca parcial)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "Chapecó"
+                        }
+                    },
+                    {
+                        "name": "state",
+                        "in": "query",
+                        "description": "Filtrar por estado (sigla UF)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 2,
+                            "example": "SC"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Lista de clubes",
@@ -722,9 +755,69 @@
                 "tags": [
                     "Games"
                 ],
-                "summary": "Lista partidas do usário",
-                "description": "Lista todas as partidas do usuário logado e quem está na partida",
+                "summary": "Lista partidas do usuário",
+                "description": "Lista as partidas do usuário logado com filtros opcionais. Se status não for informado, retorna apenas partidas com status 'open'.",
                 "operationId": "589589f26003a22c288f69fb4ded72b0",
+                "parameters": [
+                    {
+                        "name": "data_time",
+                        "in": "query",
+                        "description": "Filtrar por data da partida (formato: YYYY-MM-DD)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2026-02-10"
+                        }
+                    },
+                    {
+                        "name": "club_id",
+                        "in": "query",
+                        "description": "Filtrar por ID do clube",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "min_level",
+                        "in": "query",
+                        "description": "Filtrar por nível mínimo da partida",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2
+                        }
+                    },
+                    {
+                        "name": "max_level",
+                        "in": "query",
+                        "description": "Filtrar por nível máximo da partida",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 4
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filtrar por status da partida (padrão: open)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "open",
+                                "full",
+                                "in_progress",
+                                "completed",
+                                "canceled"
+                            ],
+                            "example": "open"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "Dados da partida e players daquela partida",
@@ -1088,6 +1181,73 @@
                     },
                     "404": {
                         "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/players": {
+            "get": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Lista todos os players",
+                "description": "Retorna os dados de todos os players cadastrados, com filtros opcionais",
+                "operationId": "a355f9879160729f824bdea53e739b05",
+                "parameters": [
+                    {
+                        "name": "full_name",
+                        "in": "query",
+                        "description": "Filtrar por nome do jogador (busca parcial)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "João"
+                        }
+                    },
+                    {
+                        "name": "level",
+                        "in": "query",
+                        "description": "Filtrar por nível do jogador",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 5
+                        }
+                    },
+                    {
+                        "name": "side",
+                        "in": "query",
+                        "description": "Filtrar por lado do jogador",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "left",
+                                "right",
+                                "both"
+                            ],
+                            "example": "right"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de players",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [

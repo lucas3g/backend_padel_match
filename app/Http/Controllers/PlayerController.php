@@ -16,6 +16,57 @@ class PlayerController extends Controller
 
     /**
      * @OA\Get(
+     *     path="/api/players",
+     *     tags={"Player"},
+     *     summary="Lista todos os players",
+     *     description="Retorna os dados de todos os players cadastrados, com filtros opcionais",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="full_name",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por nome do jogador (busca parcial)",
+     *         @OA\Schema(type="string", example="João")
+     *     ),
+     *     @OA\Parameter(
+     *         name="level",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por nível do jogador",
+     *         @OA\Schema(type="integer", example=5)
+     *     ),
+     *     @OA\Parameter(
+     *         name="side",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por lado do jogador",
+     *         @OA\Schema(type="string", enum={"left","right","both"}, example="right")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista de players",
+     *         @OA\JsonContent(
+     *             type="array",
+     *             @OA\Items(type="object")
+     *         )
+     *     )
+     * )
+     */
+    public function index(Request $request)
+    {
+        $players = Player::query()
+            ->when($request->query('full_name'), fn ($q, $name) => $q->where('full_name', 'like', "%{$name}%"))
+            ->when($request->query('level'), fn ($q, $level) => $q->where('level', $level))
+            ->when($request->query('side'), fn ($q, $side) => $q->where('side', $side))
+            ->get();
+
+        return response()->json($players);
+    }
+
+    /**
+     * @OA\Get(
      *     path="/api/player/id",
      *     tags={"Player"},
      *     summary="Exibe o player",

@@ -18,9 +18,31 @@ class ClubController extends Controller
      *     path="/api/clubs",
      *     tags={"Clubs"},
      *     summary="Lista todos os clubes",
-     *     description="Retorna os dados de todos os clubes cadastrados",
+     *     description="Retorna os dados de todos os clubes cadastrados, com filtros opcionais",
      *
      *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="name",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por nome do clube (busca parcial)",
+     *         @OA\Schema(type="string", example="Padel")
+     *     ),
+     *     @OA\Parameter(
+     *         name="city",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por cidade (busca parcial)",
+     *         @OA\Schema(type="string", example="Chapecó")
+     *     ),
+     *     @OA\Parameter(
+     *         name="state",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por estado (sigla UF)",
+     *         @OA\Schema(type="string", maxLength=2, example="SC")
+     *     ),
      *
      *     @OA\Response(
      *         response=200,
@@ -34,9 +56,13 @@ class ClubController extends Controller
      */
     public function index(Request $request)
     {
-        return response()->json(
-            Club::all()
-        );
+        $clubs = Club::query()
+            ->when($request->query('name'), fn ($q, $name) => $q->where('name', 'like', "%{$name}%"))
+            ->when($request->query('city'), fn ($q, $city) => $q->where('city', 'like', "%{$city}%"))
+            ->when($request->query('state'), fn ($q, $state) => $q->where('state', $state))
+            ->get();
+
+        return response()->json($clubs);
     }
 
     /**
