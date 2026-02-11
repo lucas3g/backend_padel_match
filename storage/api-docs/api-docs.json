@@ -188,6 +188,16 @@
                         }
                     },
                     {
+                        "name": "city_name",
+                        "in": "query",
+                        "description": "Filtrar por nome/descrição do município (busca parcial)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "Chapecó"
+                        }
+                    },
+                    {
                         "name": "state",
                         "in": "query",
                         "description": "Filtrar por estado (sigla UF)",

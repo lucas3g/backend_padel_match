@@ -37,6 +37,13 @@ class ClubController extends Controller
      *         @OA\Schema(type="integer", example=4204202)
      *     ),
      *     @OA\Parameter(
+     *         name="city_name",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por nome/descrição do município (busca parcial)",
+     *         @OA\Schema(type="string", example="Chapecó")
+     *     ),
+     *     @OA\Parameter(
      *         name="state",
      *         in="query",
      *         required=false,
@@ -60,6 +67,7 @@ class ClubController extends Controller
             ->with('municipio:codigo_ibge,descricao,uf,id_uf')
             ->when($request->query('name'), fn ($q, $name) => $q->where('name', 'like', "%{$name}%"))
             ->when($request->query('city'), fn ($q, $city) => $q->where('city', $city))
+            ->when($request->query('city_name'), fn ($q, $cityName) => $q->whereHas('municipio', fn ($mq) => $mq->where('descricao', 'like', "%{$cityName}%")))
             ->when($request->query('state'), fn ($q, $state) => $q->where('state', $state))
             ->get();
 
