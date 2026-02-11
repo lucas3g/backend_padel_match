@@ -29,6 +29,16 @@ class Club extends Model
         'active'
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     protected $casts = [
         'latitude' => 'float',
         'longitude' => 'float',

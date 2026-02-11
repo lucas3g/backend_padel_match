@@ -22,6 +22,16 @@ class Court extends Model
         'active'
     ];
 
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array<int, string>
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     public function club()
     {
         return $this->belongsTo(Club::class);
