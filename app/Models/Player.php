@@ -58,4 +58,20 @@ class Player extends Model
     {
         return $this->hasMany(Game::class, 'owner_player_id');
     }
+
+    public function friendshipsInitiated()
+    {
+        return $this->hasMany(Friend::class, 'player_id');
+    }
+
+    public function friendshipsReceived()
+    {
+        return $this->hasMany(Friend::class, 'friend_id');
+    }
+
+    public function favorites()
+    {
+        return $this->belongsToMany(Player::class, 'player_favorites', 'player_id', 'favorite_player_id')
+            ->withTimestamps();
+    }
 }

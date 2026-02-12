@@ -760,6 +760,476 @@
                 ]
             }
         },
+        "/api/friends": {
+            "get": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Lista amigos do jogador",
+                "description": "Retorna a lista de amigos aceitos do jogador autenticado, com indicação de favoritos",
+                "operationId": "73f1c8418ad5b2d4dd27bf3b82c6dcc9",
+                "responses": {
+                    "200": {
+                        "description": "Lista de amigos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/pending": {
+            "get": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Lista solicitações de amizade recebidas",
+                "description": "Retorna as solicitações de amizade pendentes recebidas pelo jogador autenticado",
+                "operationId": "8d56dbb3256818ecb4d623806d44626b",
+                "responses": {
+                    "200": {
+                        "description": "Lista de solicitações pendentes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/sent": {
+            "get": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Lista solicitações de amizade enviadas",
+                "description": "Retorna as solicitações de amizade pendentes enviadas pelo jogador autenticado",
+                "operationId": "4526ebd69920fabc85a3b671f193bc57",
+                "responses": {
+                    "200": {
+                        "description": "Lista de solicitações enviadas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/request/{player}": {
+            "post": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Enviar solicitação de amizade",
+                "description": "Envia uma solicitação de amizade para outro jogador",
+                "operationId": "a18b485ce3604dfc19a36ea3798c09c5",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Solicitação enviada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erro de validação"
+                    },
+                    "404": {
+                        "description": "Jogador não encontrado"
+                    },
+                    "409": {
+                        "description": "Solicitação já existe"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/{friend}/accept": {
+            "post": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Aceitar solicitação de amizade",
+                "description": "Aceita uma solicitação de amizade pendente. O parâmetro {friend} é o ID do registro na tabela friends.",
+                "operationId": "c7165dabcc6389dacf9aa173c292e3da",
+                "parameters": [
+                    {
+                        "name": "friend",
+                        "in": "path",
+                        "description": "ID da solicitação de amizade",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solicitação aceita",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Solicitação de amizade aceita"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão para aceitar esta solicitação"
+                    },
+                    "404": {
+                        "description": "Solicitação não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/{friend}/reject": {
+            "post": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Rejeitar solicitação de amizade",
+                "description": "Rejeita uma solicitação de amizade pendente. O parâmetro {friend} é o ID do registro na tabela friends.",
+                "operationId": "673c0055d05c6d674a04a46096e1b3d6",
+                "parameters": [
+                    {
+                        "name": "friend",
+                        "in": "path",
+                        "description": "ID da solicitação de amizade",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Solicitação rejeitada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Solicitação de amizade rejeitada"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão para rejeitar esta solicitação"
+                    },
+                    "404": {
+                        "description": "Solicitação não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/{player}": {
+            "delete": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Remover amizade",
+                "description": "Remove a amizade com outro jogador. Também remove dos favoritos se aplicável.",
+                "operationId": "285a33f6955bbd14b57ad217059a1cbe",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Amizade removida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Amizade removida"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Amizade não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/{player}/block": {
+            "post": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Bloquear jogador",
+                "description": "Bloqueia um jogador. Remove amizade e favoritos se existirem.",
+                "operationId": "edf9671bb15146a0066eb47dd80a17ff",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador a bloquear",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jogador bloqueado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Jogador bloqueado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erro de validação"
+                    },
+                    "404": {
+                        "description": "Jogador não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/favorites": {
+            "get": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Lista amigos favoritos",
+                "description": "Retorna a lista de amigos marcados como favoritos (amigos próximos) do jogador autenticado",
+                "operationId": "3d35cbf9cea585695166fcae4581f861",
+                "responses": {
+                    "200": {
+                        "description": "Lista de favoritos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/friends/{player}/favorite": {
+            "post": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Adicionar/remover amigo dos favoritos",
+                "description": "Funciona como toggle: se o amigo já for favorito, remove. Se não for, adiciona. Somente amigos aceitos podem ser favoritados.",
+                "operationId": "7be352c856b803b2b01e23249145e985",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador amigo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status de favorito alterado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "is_favorite": {
+                                            "type": "boolean"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Jogadores não são amigos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Friends"
+                ],
+                "summary": "Remover amigo dos favoritos",
+                "description": "Remove um amigo da lista de favoritos do jogador autenticado",
+                "operationId": "51aad5ca31195f3b7e81b3df97eaccbd",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador amigo",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Removido dos favoritos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Removido dos favoritos"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Favorito não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/game": {
             "get": {
                 "tags": [
@@ -1501,6 +1971,10 @@
         {
             "name": "Courts",
             "description": "Gerenciamento de quadras"
+        },
+        {
+            "name": "Friends",
+            "description": "Gerenciamento de amizades e favoritos"
         },
         {
             "name": "Games",

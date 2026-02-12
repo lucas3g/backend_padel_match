@@ -11,25 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('friends', function (Blueprint $table) {
+        Schema::create('player_favorites', function (Blueprint $table) {
             $table->id();
 
             $table->foreignId('player_id')
                   ->constrained('players')
                   ->cascadeOnDelete();
 
-            $table->foreignId('friend_id')
+            $table->foreignId('favorite_player_id')
                   ->constrained('players')
                   ->cascadeOnDelete();
 
-            $table->enum('status', ['pending', 'accepted', 'rejected', 'blocked'])
-                  ->default('pending');
-
             $table->timestamps();
 
-            $table->unique(['player_id', 'friend_id']);
-            $table->index(['player_id', 'status']);
-            $table->index(['friend_id', 'status']);
+            $table->unique(['player_id', 'favorite_player_id']);
         });
     }
 
@@ -38,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('friends');
+        Schema::dropIfExists('player_favorites');
     }
 };

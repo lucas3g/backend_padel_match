@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubCourtController;
 use App\Http\Controllers\CourtController;
+use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GameController;
 
 use App\Http\Controllers\PlayerController;
@@ -56,4 +57,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/game/{id}', [GameController::class, 'update']);
     Route::post('/game/{game}/join', [GameController::class, 'join']);
     Route::post('/game/{game}/leave', [GameController::class, 'leave']);
+
+    // Amigos - rotas estáticas primeiro para evitar conflito com parâmetros dinâmicos
+    Route::get('/friends', [FriendController::class, 'index']);
+    Route::get('/friends/pending', [FriendController::class, 'pending']);
+    Route::get('/friends/sent', [FriendController::class, 'sent']);
+    Route::get('/friends/favorites', [FriendController::class, 'favorites']);
+    Route::post('/friends/request/{player}', [FriendController::class, 'sendRequest']);
+    Route::post('/friends/{friend}/accept', [FriendController::class, 'accept']);
+    Route::post('/friends/{friend}/reject', [FriendController::class, 'reject']);
+    Route::delete('/friends/{player}', [FriendController::class, 'remove']);
+    Route::post('/friends/{player}/block', [FriendController::class, 'block']);
+    Route::post('/friends/{player}/favorite', [FriendController::class, 'toggleFavorite']);
+    Route::delete('/friends/{player}/favorite', [FriendController::class, 'removeFavorite']);
 });
