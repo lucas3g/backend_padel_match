@@ -74,4 +74,9 @@ class Player extends Model
         return $this->belongsToMany(Player::class, 'player_favorites', 'player_id', 'favorite_player_id')
             ->withTimestamps();
     }
+
+    public function gameInvitations()
+    {
+        return $this->hasMany(GameInvitation::class, 'player_id');
+    }
 }

@@ -4,63 +4,74 @@ namespace App\Policies;
 
 use App\Models\Game;
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class GamePolicy
 {
     /**
-     * Determine whether the user can view any models.
-     */
-    public function viewAny(User $user): bool
-    {
-        //
-    }
-
-    /**
-     * Determine whether the user can view the model.
+     * Visualizar partida.
+     * Publica: qualquer player autenticado.
+     * Privada: owner, convidado (pending/accepted) ou ja participa.
      */
     public function view(User $user, Game $game): bool
     {
-        //
+        if ($game->type === 'public') {
+            return true;
+        }
+
+        $player = $user->player;
+
+        if (!$player) {
+            return false;
+        }
+
+        return $game->canAccess($player);
     }
 
     /**
-     * Determine whether the user can create models.
+     * Entrar na partida.
+     * Publica + open: qualquer player.
+     * Privada + open: owner ou convidado (accepted).
      */
-    public function create(User $user): bool
+    public function join(User $user, Game $game): bool
     {
-        //
+        $player = $user->player;
+
+        if (!$player) {
+            return false;
+        }
+
+        if ($game->status !== 'open') {
+            return false;
+        }
+
+        if ($game->type === 'public') {
+            return true;
+        }
+
+        return $game->isOwner($player) || $game->isInvitedAccepted($player);
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Convidar jogadores.
+     * Somente o owner de partida privada.
+     */
+    public function invite(User $user, Game $game): bool
+    {
+        $player = $user->player;
+
+        if (!$player) {
+            return false;
+        }
+
+        return $game->type === 'private' && $game->isOwner($player);
+    }
+
+    /**
+     * Atualizar partida.
+     * Somente o owner.
      */
     public function update(User $user, Game $game): bool
     {
-        return $user->player->id === $game->owner_player_id;
-    }
-
-    /**
-     * Determine whether the user can delete the model.
-     */
-    public function delete(User $user, Game $game): bool
-    {
-        //
-    }
-
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, Game $game): bool
-    {
-        //
-    }
-
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, Game $game): bool
-    {
-        //
+        return $user->player && $user->player->id === $game->owner_player_id;
     }
 }

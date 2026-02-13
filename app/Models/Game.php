@@ -50,4 +50,48 @@ class Game extends Model
                     ->withPivot('joined_at')
                     ->withTimestamps();
     }
+
+    public function invitations()
+    {
+        return $this->hasMany(GameInvitation::class);
+    }
+
+    public function invitedPlayers()
+    {
+        return $this->belongsToMany(Player::class, 'game_invitations')
+                    ->withPivot('status', 'invited_by')
+                    ->withTimestamps();
+    }
+
+    public function isOwner(Player $player): bool
+    {
+        return $this->owner_player_id === $player->id;
+    }
+
+    public function isInvited(Player $player): bool
+    {
+        return $this->invitations()
+            ->where('player_id', $player->id)
+            ->whereIn('status', ['pending', 'accepted'])
+            ->exists();
+    }
+
+    public function isInvitedAccepted(Player $player): bool
+    {
+        return $this->invitations()
+            ->where('player_id', $player->id)
+            ->where('status', 'accepted')
+            ->exists();
+    }
+
+    public function canAccess(Player $player): bool
+    {
+        if ($this->type === 'public') {
+            return true;
+        }
+
+        return $this->isOwner($player)
+            || $this->isInvited($player)
+            || $this->players()->where('players.id', $player->id)->exists();
+    }
 }

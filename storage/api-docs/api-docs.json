@@ -1236,7 +1236,7 @@
                     "Games"
                 ],
                 "summary": "Lista partidas do usuário",
-                "description": "Lista as partidas do usuário logado com filtros opcionais. Se status não for informado, retorna apenas partidas com status 'open'.",
+                "description": "Lista as partidas do usuário logado (participando ou convidado) com filtros opcionais. Se status não for informado, retorna apenas partidas com status 'open'.",
                 "operationId": "589589f26003a22c288f69fb4ded72b0",
                 "parameters": [
                     {
@@ -1452,8 +1452,8 @@
                 "tags": [
                     "Games"
                 ],
-                "summary": "Lista partidas públicas disponíveis",
-                "description": "Retorna todas as partidas públicas com status open onde o usuário logado não é o criador",
+                "summary": "Lista partidas disponíveis",
+                "description": "Retorna partidas públicas com status open e partidas privadas onde o jogador foi convidado",
                 "operationId": "72be6a94a6467ddf1870ca68fa973f57",
                 "responses": {
                     "200": {
@@ -1486,7 +1486,7 @@
                     "Games"
                 ],
                 "summary": "Lista uma partida",
-                "description": "Lista uma partida conforme id solicitado",
+                "description": "Lista uma partida conforme id solicitado. Partidas privadas são visíveis apenas para o proprietário e jogadores convidados.",
                 "operationId": "a97bf63cceaee3b8908a3d1854eddf6f",
                 "responses": {
                     "200": {
@@ -1501,6 +1501,9 @@
                                 }
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Sem permissão para visualizar esta partida"
                     }
                 },
                 "security": [
@@ -1516,7 +1519,7 @@
                     "Games"
                 ],
                 "summary": "Entrar em uma partida",
-                "description": "Adiciona o player do usuário autenticado a uma partida existente",
+                "description": "Adiciona o player do usuário autenticado a uma partida. Partidas públicas são abertas a todos. Partidas privadas requerem convite aceito.",
                 "operationId": "96260be77e54da944cd23835ea889061",
                 "parameters": [
                     {
@@ -1661,6 +1664,255 @@
                     },
                     "404": {
                         "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/{game}/invite/{player}": {
+            "post": {
+                "tags": [
+                    "Game Invitations"
+                ],
+                "summary": "Convidar jogador para partida privada",
+                "description": "O proprietário da partida convida um jogador para participar de uma partida privada",
+                "operationId": "070d75313c2b259c988280275cbedac8",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador a convidar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Convite enviado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Erro de validação"
+                    },
+                    "403": {
+                        "description": "Sem permissão para convidar"
+                    },
+                    "404": {
+                        "description": "Jogador não encontrado"
+                    },
+                    "409": {
+                        "description": "Convite já existe ou jogador já está na partida"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Game Invitations"
+                ],
+                "summary": "Cancelar convite",
+                "description": "O proprietário cancela um convite enviado para um jogador",
+                "operationId": "e3ac39bf5a90641876e19732f565adaf",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Convite cancelado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Convite cancelado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão"
+                    },
+                    "404": {
+                        "description": "Convite não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/invitations": {
+            "get": {
+                "tags": [
+                    "Game Invitations"
+                ],
+                "summary": "Lista convites recebidos",
+                "description": "Retorna os convites pendentes de partidas privadas para o jogador autenticado",
+                "operationId": "7536783967b1fd5b33b60bf157da75df",
+                "responses": {
+                    "200": {
+                        "description": "Lista de convites",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/invitation/{invitation}/accept": {
+            "post": {
+                "tags": [
+                    "Game Invitations"
+                ],
+                "summary": "Aceitar convite",
+                "description": "Aceita um convite para partida privada. Após aceitar, o jogador pode entrar na partida via endpoint de join.",
+                "operationId": "8fcbcd8c2660d30ba0ec3cd3ab747822",
+                "parameters": [
+                    {
+                        "name": "invitation",
+                        "in": "path",
+                        "description": "ID do convite",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Convite aceito",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Convite aceito"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão para aceitar este convite"
+                    },
+                    "404": {
+                        "description": "Convite não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/invitation/{invitation}/reject": {
+            "post": {
+                "tags": [
+                    "Game Invitations"
+                ],
+                "summary": "Rejeitar convite",
+                "description": "Rejeita um convite para partida privada",
+                "operationId": "9f85e5910a5b1c875b9f2030a81e1541",
+                "parameters": [
+                    {
+                        "name": "invitation",
+                        "in": "path",
+                        "description": "ID do convite",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Convite rejeitado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Convite rejeitado"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão para rejeitar este convite"
+                    },
+                    "404": {
+                        "description": "Convite não encontrado"
                     }
                 },
                 "security": [
@@ -1979,6 +2231,10 @@
         {
             "name": "Games",
             "description": "Gerenciamento de partidas"
+        },
+        {
+            "name": "Game Invitations",
+            "description": "Gerenciamento de convites para partidas privadas"
         },
         {
             "name": "Player",

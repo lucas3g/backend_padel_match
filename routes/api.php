@@ -6,6 +6,7 @@ use App\Http\Controllers\ClubCourtController;
 use App\Http\Controllers\CourtController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\GameInvitationController;
 
 use App\Http\Controllers\PlayerController;
 use Illuminate\Http\Request;
@@ -57,6 +58,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/game/{id}', [GameController::class, 'update']);
     Route::post('/game/{game}/join', [GameController::class, 'join']);
     Route::post('/game/{game}/leave', [GameController::class, 'leave']);
+
+    // Convites de partidas - rotas estáticas antes das dinâmicas
+    Route::get('/game/invitations', [GameInvitationController::class, 'myInvitations']);
+    Route::post('/game/invitation/{invitation}/accept', [GameInvitationController::class, 'accept']);
+    Route::post('/game/invitation/{invitation}/reject', [GameInvitationController::class, 'reject']);
+    Route::post('/game/{game}/invite/{player}', [GameInvitationController::class, 'invite']);
+    Route::delete('/game/{game}/invite/{player}', [GameInvitationController::class, 'cancelInvite']);
 
     // Amigos - rotas estáticas primeiro para evitar conflito com parâmetros dinâmicos
     Route::get('/friends', [FriendController::class, 'index']);

@@ -20,7 +20,7 @@ class GameController extends Controller
      *     path="/api/game",
      *     tags={"Games"},
      *     summary="Lista partidas do usuário",
-     *     description="Lista as partidas do usuário logado com filtros opcionais. Se status não for informado, retorna apenas partidas com status 'open'.",
+     *     description="Lista as partidas do usuário logado (participando ou convidado) com filtros opcionais. Se status não for informado, retorna apenas partidas com status 'open'.",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(
@@ -79,25 +79,48 @@ class GameController extends Controller
             ], 400);
         }
 
-        $games = $player->games()
-            ->where('status', $request->query('status', 'open'))
+        $status = $request->query('status', 'open');
+        $eagerLoad = [
+            'players:id,full_name,level,side',
+            'owner:id,full_name',
+            'club:id,name,city,state',
+            'court:id,club_id,name,type,covered'
+        ];
+
+        // Partidas que o player já participa
+        $joinedGames = $player->games()
+            ->where('status', $status)
             ->when($request->query('data_time'), fn ($q, $date) => $q->whereDate('data_time', $date))
             ->when($request->query('club_id'), fn ($q, $clubId) => $q->where('club_id', $clubId))
             ->when($request->query('min_level'), fn ($q, $level) => $q->where('min_level', '>=', $level))
             ->when($request->query('max_level'), fn ($q, $level) => $q->where('max_level', '<=', $level))
-            ->with([
-                'players:id,full_name,level,side',
-                'owner:id,full_name',
-                'club:id,name,city,state',
-                'court:id,club_id,name,type,covered'
-            ])
-            ->get()
-            ->each(function ($game) {
-                $game->makeHidden(['created_at', 'updated_at']);
-                $game->players->each(function ($player) {
-                    $player->pivot->makeHidden(['created_at', 'updated_at']);
-                });
+            ->with($eagerLoad)
+            ->get();
+
+        // Partidas privadas onde tem convite aceito mas ainda nao entrou
+        $invitedGameIds = $player->gameInvitations()
+            ->where('status', 'accepted')
+            ->pluck('game_id');
+
+        $invitedGames = Game::whereIn('id', $invitedGameIds)
+            ->where('status', $status)
+            ->where('type', 'private')
+            ->whereDoesntHave('players', fn ($q) => $q->where('players.id', $player->id))
+            ->when($request->query('data_time'), fn ($q, $date) => $q->whereDate('data_time', $date))
+            ->when($request->query('club_id'), fn ($q, $clubId) => $q->where('club_id', $clubId))
+            ->when($request->query('min_level'), fn ($q, $level) => $q->where('min_level', '>=', $level))
+            ->when($request->query('max_level'), fn ($q, $level) => $q->where('max_level', '<=', $level))
+            ->with($eagerLoad)
+            ->get();
+
+        $games = $joinedGames->merge($invitedGames)->unique('id')->values();
+
+        $games->each(function ($game) {
+            $game->makeHidden(['created_at', 'updated_at']);
+            $game->players->each(function ($player) {
+                $player->pivot->makeHidden(['created_at', 'updated_at']);
             });
+        });
 
         return response()->json($games);
     }
@@ -106,8 +129,8 @@ class GameController extends Controller
      * @OA\Get(
      *     path="/api/game/available",
      *     tags={"Games"},
-     *     summary="Lista partidas públicas disponíveis",
-     *     description="Retorna todas as partidas públicas com status open onde o usuário logado não é o criador",
+     *     summary="Lista partidas disponíveis",
+     *     description="Retorna partidas públicas com status open e partidas privadas onde o jogador foi convidado",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
@@ -135,22 +158,39 @@ class GameController extends Controller
             ], 400);
         }
 
-        $games = Game::where('type', 'public')
+        $eagerLoad = [
+            'players:id,full_name,level,side',
+            'owner:id,full_name',
+            'club:id,name,city,state',
+            'court:id,club_id,name,type,covered'
+        ];
+
+        // Partidas públicas abertas (exceto as do próprio player)
+        $publicGames = Game::where('type', 'public')
             ->where('status', 'open')
             ->where('owner_player_id', '!=', $player->id)
-            ->with([
-                'players:id,full_name,level,side',
-                'owner:id,full_name',
-                'club:id,name,city,state',
-                'court:id,club_id,name,type,covered'
-            ])
-            ->get()
-            ->each(function ($game) {
-                $game->makeHidden(['created_at', 'updated_at']);
-                $game->players->each(function ($player) {
-                    $player->pivot->makeHidden(['created_at', 'updated_at']);
-                });
+            ->with($eagerLoad)
+            ->get();
+
+        // Partidas privadas onde o player foi convidado (pending ou accepted)
+        $invitedGameIds = $player->gameInvitations()
+            ->whereIn('status', ['pending', 'accepted'])
+            ->pluck('game_id');
+
+        $invitedGames = Game::whereIn('id', $invitedGameIds)
+            ->where('status', 'open')
+            ->where('type', 'private')
+            ->with($eagerLoad)
+            ->get();
+
+        $games = $publicGames->merge($invitedGames)->unique('id')->values();
+
+        $games->each(function ($game) {
+            $game->makeHidden(['created_at', 'updated_at']);
+            $game->players->each(function ($player) {
+                $player->pivot->makeHidden(['created_at', 'updated_at']);
             });
+        });
 
         return response()->json($games);
     }
@@ -160,7 +200,7 @@ class GameController extends Controller
      *     path="/api/game/id",
      *     tags={"Games"},
      *     summary="Lista uma partida",
-     *     description="Lista uma partida conforme id solicitado",
+     *     description="Lista uma partida conforme id solicitado. Partidas privadas são visíveis apenas para o proprietário e jogadores convidados.",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Response(
@@ -170,19 +210,27 @@ class GameController extends Controller
      *             type="array",
      *             @OA\Items(type="object")
      *         )
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="Sem permissão para visualizar esta partida"
      *     )
      * )
      */
     public function show(Request $request, $id)
     {
         $game = Game::with([
-            'players:id,full_name,level,side', //define colunas para retornar
+            'players:id,full_name,level,side',
             'owner:id,full_name',
             'club:id,name,city,state',
             'court:id,club_id,name,type,covered'
-        ])
-            ->where('status', 'open') //apenas partidas abertas
-            ->findOrFail($id);
+        ])->findOrFail($id);
+
+        if ($request->user()->cannot('view', $game)) {
+            return response()->json([
+                'message' => 'Sem permissão para visualizar esta partida'
+            ], 403);
+        }
 
         $game->makeHidden(['created_at', 'updated_at']);
         $game->players->each(function ($player) {
@@ -281,7 +329,7 @@ class GameController extends Controller
      *     path="/api/game/{game}/join",
      *     tags={"Games"},
      *     summary="Entrar em uma partida",
-     *     description="Adiciona o player do usuário autenticado a uma partida existente",
+     *     description="Adiciona o player do usuário autenticado a uma partida. Partidas públicas são abertas a todos. Partidas privadas requerem convite aceito.",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(
@@ -329,16 +377,10 @@ class GameController extends Controller
             ], 400);
         }
 
-        if ($game->type !== 'public') {
+        if ($request->user()->cannot('join', $game)) {
             return response()->json([
-                'message' => 'Não é possível entrar em partidas privadas'
+                'message' => 'Sem permissão para entrar nesta partida'
             ], 403);
-        }
-
-        if ($game->status !== 'open') {
-            return response()->json([
-                'message' => 'Esta partida não está aberta para novos jogadores'
-            ], 409);
         }
 
         if ($game->max_players && $game->players()->count() >= $game->max_players) {
