@@ -303,6 +303,36 @@ class GameInvitationController extends Controller
 
         $invitation->update(['status' => 'accepted']);
 
+        $game = $invitation->game;
+
+        if ($game->status !== 'open') {
+            return response()->json([
+                'message' => 'Convite aceito, mas a partida não está mais aberta'
+            ]);
+        }
+
+        if ($game->players()->where('players.id', $player->id)->exists()) {
+            return response()->json([
+                'message' => 'Convite aceito'
+            ]);
+        }
+
+        if ($game->max_players && $game->players()->count() >= $game->max_players) {
+            return response()->json([
+                'message' => 'Convite aceito, mas a partida já está cheia'
+            ]);
+        }
+
+        $game->players()->syncWithoutDetaching([
+            $player->id => ['joined_at' => now()]
+        ]);
+
+        event(new \App\Events\PlayerJoinedGame($game, $player));
+
+        if ($game->max_players && $game->players()->count() >= $game->max_players) {
+            $game->update(['status' => 'full']);
+        }
+
         return response()->json([
             'message' => 'Convite aceito'
         ]);
