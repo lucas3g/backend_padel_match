@@ -59,7 +59,12 @@ class PlayerController extends Controller
         $players = Player::query()
             ->when($request->query('full_name'), fn ($q, $name) => $q->where('full_name', 'like', "%{$name}%"))
             ->when($request->query('level'), fn ($q, $level) => $q->where('level', $level))
-            ->when($request->query('side'), fn ($q, $side) => $q->where('side', $side))
+            ->when($request->query('side'), function ($q, $side) {
+                if ($side === 'both') {
+                    return $q;
+                }
+                return $q->whereIn('side', [$side, 'both']);
+            })
             ->get();
 
         return response()->json($players);
