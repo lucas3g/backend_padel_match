@@ -150,7 +150,7 @@ class PlayerController extends Controller
             "full_name" => 'required|string|max:255',
             "phone" => 'nullable|string|max:20',
             "level" => 'required|integer',
-            "side" => 'required|in:left,right,both',
+            "side" => 'required|in:left,right',
             "bio" => 'nullable|string|max:2500',
             "profile_image_url" => 'nullable',
         ], [
