@@ -63,7 +63,7 @@ class GamePolicy
             return false;
         }
 
-        return $game->type === 'private' && $game->isOwner($player);
+        return $game->isOwner($player);
     }
 
     /**
