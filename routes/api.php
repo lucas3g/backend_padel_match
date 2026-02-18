@@ -53,14 +53,14 @@ Route::middleware('auth:sanctum')->group(function () {
     
     Route::get('/game', [GameController::class, 'index']);
     Route::get('/game/available', [GameController::class, 'available']);
+    Route::get('/game/invitations', [GameInvitationController::class, 'myInvitations']);
     Route::get('/game/{id}', [GameController::class, 'show']);
     Route::post('/game', [GameController::class, 'store']);
     Route::put('/game/{id}', [GameController::class, 'update']);
     Route::post('/game/{game}/join', [GameController::class, 'join']);
     Route::post('/game/{game}/leave', [GameController::class, 'leave']);
 
-    // Convites de partidas - rotas estáticas antes das dinâmicas
-    Route::get('/game/invitations', [GameInvitationController::class, 'myInvitations']);
+    // Convites de partidas
     Route::post('/game/invitation/{invitation}/accept', [GameInvitationController::class, 'accept']);
     Route::post('/game/invitation/{invitation}/reject', [GameInvitationController::class, 'reject']);
     Route::post('/game/{game}/invite/{player}', [GameInvitationController::class, 'invite']);
