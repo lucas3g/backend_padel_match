@@ -21,6 +21,12 @@ class GameInvitation extends Model
         'updated_at',
     ];
 
+    protected $casts = [
+        'game_id'    => 'integer',
+        'player_id'  => 'integer',
+        'invited_by' => 'integer',
+    ];
+
     public function game()
     {
         return $this->belongsTo(Game::class);
