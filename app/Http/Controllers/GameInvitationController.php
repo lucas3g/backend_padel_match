@@ -105,6 +105,7 @@ class GameInvitationController extends Controller
         if ($existingInvite) {
             if ($existingInvite->status === 'rejected') {
                 $existingInvite->update(['status' => 'pending']);
+                $existingInvite->load('invitedBy:id,full_name');
                 return response()->json([
                     'message' => 'Convite reenviado',
                     'data' => $existingInvite
@@ -123,6 +124,7 @@ class GameInvitationController extends Controller
             'status' => 'pending',
         ]);
 
+        $invitation->load('invitedBy:id,full_name');
         return response()->json([
             'message' => 'Convite enviado',
             'data' => $invitation
