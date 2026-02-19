@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -21,6 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Preenche NULLs com valor padrão antes de tornar NOT NULL
+        DB::table('games')->whereNull('data_time')->update(['data_time' => now()]);
+
         Schema::table('games', function (Blueprint $table) {
             $table->dateTime('data_time')->nullable(false)->change();
         });

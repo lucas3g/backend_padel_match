@@ -17,6 +17,8 @@ class PlayerLeftGame implements ShouldBroadcast
     public int $gameId;
     public array $player;
     public int $currentPlayersCount;
+    public int $maxPlayers;
+    public string $gameStatus;
 
     /**
      * Evento disparado quando um player sai de uma partida.
@@ -26,10 +28,15 @@ class PlayerLeftGame implements ShouldBroadcast
     {
         $this->gameId = $game->id;
         $this->player = [
-            'id' => $player->id,
+            'id'        => $player->id,
             'full_name' => $player->full_name,
+            'level'     => $player->level,
+            'side'      => $player->side,
         ];
         $this->currentPlayersCount = $game->players()->count();
+        $this->maxPlayers = $game->max_players;
+        // Reflete o status que será salvo após o leave()
+        $this->gameStatus = ($game->status === 'full') ? 'open' : $game->status;
     }
 
     public function broadcastOn(): array
@@ -47,9 +54,11 @@ class PlayerLeftGame implements ShouldBroadcast
     public function broadcastWith(): array
     {
         return [
-            'game_id' => $this->gameId,
-            'player' => $this->player,
+            'game_id'               => $this->gameId,
+            'player'                => $this->player,
             'current_players_count' => $this->currentPlayersCount,
+            'max_players'           => $this->maxPlayers,
+            'game_status'           => $this->gameStatus,
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Events\PlayerJoinedGame;
 use App\Events\PlayerLeftGame;
 use App\Models\Game;
+use App\Models\GameInvitation;
 use Illuminate\Http\Request;
 
 /**
@@ -463,6 +464,11 @@ class GameController extends Controller
         }
 
         $game->players()->detach($player->id);
+
+        // Remove o convite aceito para permitir re-convite futuro
+        GameInvitation::where('game_id', $game->id)
+            ->where('player_id', $player->id)
+            ->delete();
 
         // Broadcast para todos os participantes restantes
         event(new PlayerLeftGame($game, $player));
