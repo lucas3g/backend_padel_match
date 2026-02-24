@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    Options -MultiViews
+    RewriteEngine On
+    RewriteBase /padelmatch/
+
+    # Não reescreve se a URL já estiver apontando para /public
+    RewriteCond %{REQUEST_URI} !^/padelmatch/public
+
+    RewriteRule ^(.*)$ public/$1 [L,QSA]
+</IfModule>
