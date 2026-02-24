@@ -42,14 +42,16 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/clubs', [ClubController::class, 'index']);
     Route::get('/club/{id}', [ClubController::class, 'show']);
-    Route::post('/club', [ClubController::class, 'store']);
-    Route::put('/club/{id}', [ClubController::class, 'update']);
-
     Route::get('/court/{id?}', [CourtController::class, 'show']);
-    Route::post('/court', [CourtController::class, 'store']);
-    Route::put('/court/{id}', [CourtController::class, 'update']);
-
     Route::get('/club/{club}/courts', [ClubCourtController::class, 'index']);
+
+    // Rotas administrativas: apenas admin ou club_manager
+    Route::middleware('role:admin|club_manager')->group(function () {
+        Route::post('/club', [ClubController::class, 'store']);
+        Route::put('/club/{id}', [ClubController::class, 'update']);
+        Route::post('/court', [CourtController::class, 'store']);
+        Route::put('/court/{id}', [CourtController::class, 'update']);
+    });
     
     Route::get('/game', [GameController::class, 'index']);
     Route::get('/game/available', [GameController::class, 'available']);

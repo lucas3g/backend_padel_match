@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Games\AcceptGameInvitationAction;
+use App\Exceptions\Games\GameIsFullException;
+use App\Exceptions\Games\GameNotOpenException;
 use App\Models\Game;
 use App\Models\GameInvitation;
 use App\Models\Player;
@@ -282,9 +285,7 @@ class GameInvitationController extends Controller
         $player = $request->user()->player;
 
         if (!$player) {
-            return response()->json([
-                'message' => 'Usuário não possui player vinculado'
-            ], 400);
+            return response()->json(['message' => 'Usuário não possui player vinculado'], 400);
         }
 
         $invitation = GameInvitation::where('id', $invitationId)
@@ -292,52 +293,22 @@ class GameInvitationController extends Controller
             ->first();
 
         if (!$invitation) {
-            return response()->json([
-                'message' => 'Convite não encontrado'
-            ], 404);
+            return response()->json(['message' => 'Convite não encontrado'], 404);
         }
 
         if ($invitation->player_id !== $player->id) {
-            return response()->json([
-                'message' => 'Sem permissão para aceitar este convite'
-            ], 403);
+            return response()->json(['message' => 'Sem permissão para aceitar este convite'], 403);
         }
 
-        $invitation->update(['status' => 'accepted']);
-
-        $game = $invitation->game;
-
-        if ($game->status !== 'open') {
-            return response()->json([
-                'message' => 'Convite aceito, mas a partida não está mais aberta'
-            ]);
+        try {
+            app(AcceptGameInvitationAction::class)->execute($invitation, $player);
+        } catch (GameNotOpenException) {
+            return response()->json(['message' => 'Convite aceito, mas a partida não está mais aberta']);
+        } catch (GameIsFullException) {
+            return response()->json(['message' => 'Convite aceito, mas a partida já está cheia']);
         }
 
-        if ($game->players()->where('players.id', $player->id)->exists()) {
-            return response()->json([
-                'message' => 'Convite aceito'
-            ]);
-        }
-
-        if ($game->max_players && $game->players()->count() >= $game->max_players) {
-            return response()->json([
-                'message' => 'Convite aceito, mas a partida já está cheia'
-            ]);
-        }
-
-        $game->players()->syncWithoutDetaching([
-            $player->id => ['joined_at' => now()]
-        ]);
-
-        event(new \App\Events\PlayerJoinedGame($game, $player));
-
-        if ($game->max_players && $game->players()->count() >= $game->max_players) {
-            $game->update(['status' => 'full']);
-        }
-
-        return response()->json([
-            'message' => 'Convite aceito'
-        ]);
+        return response()->json(['message' => 'Convite aceito']);
     }
 
     /**
