@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\PlayerJoinedGame;
-use App\Events\PlayerLeftGame;
+use App\Actions\Games\JoinGameAction;
+use App\Actions\Games\LeaveGameAction;
+use App\Exceptions\Games\GameIsFullException;
 use App\Models\Game;
-use App\Models\GameInvitation;
 use Illuminate\Http\Request;
 
 /**
@@ -373,38 +373,20 @@ class GameController extends Controller
         $player = $request->user()->player;
 
         if (!$player) {
-            return response()->json([
-                'message' => 'Usuário não possui player vinculado'
-            ], 400);
+            return response()->json(['message' => 'Usuário não possui player vinculado'], 400);
         }
 
         if ($request->user()->cannot('join', $game)) {
-            return response()->json([
-                'message' => 'Sem permissão para entrar nesta partida'
-            ], 403);
+            return response()->json(['message' => 'Sem permissão para entrar nesta partida'], 403);
         }
 
-        if ($game->max_players && $game->players()->count() >= $game->max_players) {
-            return response()->json([
-                'message' => 'A partida já atingiu o número máximo de jogadores'
-            ], 409);
+        try {
+            app(JoinGameAction::class)->execute($game, $player);
+        } catch (GameIsFullException $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
         }
 
-        $game->players()->syncWithoutDetaching([
-            $player->id => ['joined_at' => now()]
-        ]);
-
-        // Broadcast para todos os participantes da partida
-        event(new PlayerJoinedGame($game, $player));
-
-        // Atualiza status para 'full' quando atingir max_players
-        if ($game->max_players && $game->players()->count() >= $game->max_players) {
-            $game->update(['status' => 'full']);
-        }
-
-        return response()->json([
-            'message' => 'Entrou na partida'
-        ]);
+        return response()->json(['message' => 'Entrou na partida']);
     }
 
     /**
@@ -451,36 +433,16 @@ class GameController extends Controller
         $player = $request->user()->player;
 
         if (!$player) {
-            return response()->json([
-                'message' => 'Usuário não possui player vinculado'
-            ], 400);
+            return response()->json(['message' => 'Usuário não possui player vinculado'], 400);
         }
 
-        // O criador da partida não pode sair (deve cancelar a partida)
         if ($game->owner_player_id === $player->id) {
-            return response()->json([
-                'message' => 'O criador da partida não pode sair. Cancele a partida.'
-            ], 409);
+            return response()->json(['message' => 'O criador da partida não pode sair. Cancele a partida.'], 409);
         }
 
-        $game->players()->detach($player->id);
+        app(LeaveGameAction::class)->execute($game, $player);
 
-        // Remove o convite aceito para permitir re-convite futuro
-        GameInvitation::where('game_id', $game->id)
-            ->where('player_id', $player->id)
-            ->delete();
-
-        // Broadcast para todos os participantes restantes
-        event(new PlayerLeftGame($game, $player));
-
-        // Se a partida estava cheia e alguém saiu, reabrir
-        if ($game->status === 'full') {
-            $game->update(['status' => 'open']);
-        }
-
-        return response()->json([
-            'message' => 'Saiu da partida'
-        ]);
+        return response()->json(['message' => 'Saiu da partida']);
     }
 
     /**
