@@ -4,7 +4,8 @@
     RewriteBase /padelmatch/
 
     # Não reescreve se a URL já estiver apontando para /public
-    RewriteCond %{REQUEST_URI} !^/padelmatch/public
+    RewriteCond %{REQUEST_URI} !/public/
+    RewriteCond %{REQUEST_URI} !/public$
 
     RewriteRule ^(.*)$ public/$1 [L,QSA]
 </IfModule>
