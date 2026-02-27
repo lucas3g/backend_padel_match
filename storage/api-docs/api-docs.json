@@ -1680,6 +1680,71 @@
                 ]
             }
         },
+        "/api/game/{game}/players/{player}": {
+            "delete": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Remove um jogador da partida",
+                "description": "Permite ao dono da partida remover outro jogador. O dono não pode remover a si mesmo.",
+                "operationId": "3e3babaac021742e317f3a005c5c36fe",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador a ser removido",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jogador removido da partida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Jogador removido da partida"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "403": {
+                        "description": "Apenas o dono da partida pode remover jogadores"
+                    },
+                    "404": {
+                        "description": "Jogador não está na partida"
+                    },
+                    "409": {
+                        "description": "O dono não pode remover a si mesmo"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/game/{id}": {
             "put": {
                 "tags": [
