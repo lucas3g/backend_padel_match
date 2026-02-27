@@ -29,6 +29,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::put('/user/fcm-token', [AuthController::class, 'updateFcmToken']);
 
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -61,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/game/{id}', [GameController::class, 'update']);
     Route::post('/game/{game}/join', [GameController::class, 'join']);
     Route::post('/game/{game}/leave', [GameController::class, 'leave']);
+    Route::delete('/game/{game}/players/{player}', [GameController::class, 'removePlayer']);
 
     // Convites de partidas
     Route::post('/game/invitation/{invitation}/accept', [GameInvitationController::class, 'accept']);

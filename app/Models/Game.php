@@ -26,8 +26,9 @@ class Game extends Model
         'team2_score',
         'game_type',
         'winner_team',        
-        'duration_minutes'                 
-    ];    
+        'duration_minutes',
+        'status'
+    ];
 
     public function club()
     {

@@ -25,6 +25,8 @@ class Player extends Model
         'preferred_locations',
         'data_nascimento',
         'posicao',
+        'uf',
+        'municipio_ibge',
     ];
 
     /**

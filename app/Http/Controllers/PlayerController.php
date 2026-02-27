@@ -43,6 +43,20 @@ class PlayerController extends Controller
      *         description="Filtrar por lado do jogador",
      *         @OA\Schema(type="string", enum={"left","right","both"}, example="right")
      *     ),
+     *     @OA\Parameter(
+     *         name="uf",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por UF (sigla do estado)",
+     *         @OA\Schema(type="string", example="SP")
+     *     ),
+     *     @OA\Parameter(
+     *         name="municipio_ibge",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por código IBGE do município (7 dígitos)",
+     *         @OA\Schema(type="string", example="3550308")
+     *     ),
      *
      *     @OA\Response(
      *         response=200,
@@ -65,6 +79,8 @@ class PlayerController extends Controller
                 }
                 return $q->whereIn('side', [$side, 'both']);
             })
+            ->when($request->query('uf'), fn ($q, $uf) => $q->where('uf', strtoupper($uf)))
+            ->when($request->query('municipio_ibge'), fn ($q, $codigo) => $q->where('municipio_ibge', $codigo))
             ->get();
 
         return response()->json($players);
@@ -123,7 +139,9 @@ class PlayerController extends Controller
      *             @OA\Property(property="level", type="integer", example=5),
      *             @OA\Property(property="side", type="string", enum={"left","right","both"}, example="right"),
      *             @OA\Property(property="bio", type="string", example="Jogador iniciante"),
-     *             @OA\Property(property="profile_image_url", type="string", example="https://site.com/foto.jpg")
+     *             @OA\Property(property="profile_image_url", type="string", example="https://site.com/foto.jpg"),
+     *             @OA\Property(property="uf", type="string", example="SP"),
+     *             @OA\Property(property="municipio_ibge", type="string", example="3550308")
      *         )
      *     ),
      *
@@ -158,6 +176,8 @@ class PlayerController extends Controller
             "side" => 'required|in:left,right',
             "bio" => 'nullable|string|max:2500',
             "profile_image_url" => 'nullable',
+            "uf" => 'nullable|string|size:2',
+            "municipio_ibge" => 'nullable|string|size:7',
         ], [
             'full_name.required' => 'O nome do jogador é obrigatório.',
             'level.required' => 'A categoria do jogador é obrigatório.',
@@ -186,7 +206,9 @@ class PlayerController extends Controller
      *             @OA\Property(property="level", type="integer", example=4),
      *             @OA\Property(property="side", type="string", enum={"left","right","both"}, example="both"),
      *             @OA\Property(property="bio", type="string", example="Jogador intermediário"),
-     *             @OA\Property(property="profile_image_url", type="string", example="https://site.com/foto.jpg")
+     *             @OA\Property(property="profile_image_url", type="string", example="https://site.com/foto.jpg"),
+     *             @OA\Property(property="uf", type="string", example="SP"),
+     *             @OA\Property(property="municipio_ibge", type="string", example="3550308")
      *         )
      *     ),
      *
@@ -219,6 +241,8 @@ class PlayerController extends Controller
             "side" => 'required|in:left,right,both',
             "bio" => 'nullable|string|max:2500',
             "profile_image_url" => 'nullable',
+            "uf" => 'nullable|string|size:2',
+            "municipio_ibge" => 'nullable|string|size:7',
         ], [
             'full_name.required' => 'O nome do jogador é obrigatório.',
             'level.required' => 'A categoria do jogador é obrigatório.',

@@ -115,7 +115,7 @@ class GameResource extends Resource
                         'canceled'    => 'Cancelada',
                         default       => $state,
                     }),
-                Tables\Columns\TextColumn::make('ownerPlayer.full_name')
+                Tables\Columns\TextColumn::make('owner.full_name')
                     ->label('Dono')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('data_time')

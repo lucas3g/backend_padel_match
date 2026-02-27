@@ -10,11 +10,12 @@ class Court extends Model
     use HasFactory;
 
     protected $fillable = [
-        'clubd_id',
+        'club_id',
         'name',
         'description',
         'type',
         'covered',
+        'price_per_hour',
         'images',
         'main_image_url',
         'rating',

@@ -158,6 +158,64 @@
                 ]
             }
         },
+        "/api/user/fcm-token": {
+            "put": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Atualiza o FCM token do usuário autenticado",
+                "description": "Atualiza o token de notificação push (FCM) do usuário autenticado",
+                "operationId": "1c5c5ad4137230326ebdcd4e9e1564b0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "fcm_token"
+                                ],
+                                "properties": {
+                                    "fcm_token": {
+                                        "type": "string",
+                                        "example": "dYr3kExampleToken..."
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "FCM token atualizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "FCM token atualizado com sucesso"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/clubs": {
             "get": {
                 "tags": [
@@ -1965,6 +2023,26 @@
                             ],
                             "example": "right"
                         }
+                    },
+                    {
+                        "name": "uf",
+                        "in": "query",
+                        "description": "Filtrar por UF (sigla do estado)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "SP"
+                        }
+                    },
+                    {
+                        "name": "municipio_ibge",
+                        "in": "query",
+                        "description": "Filtrar por código IBGE do município (7 dígitos)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "3550308"
+                        }
                     }
                 ],
                 "responses": {
@@ -2069,6 +2147,14 @@
                                     "profile_image_url": {
                                         "type": "string",
                                         "example": "https://site.com/foto.jpg"
+                                    },
+                                    "uf": {
+                                        "type": "string",
+                                        "example": "SP"
+                                    },
+                                    "municipio_ibge": {
+                                        "type": "string",
+                                        "example": "3550308"
                                     }
                                 },
                                 "type": "object"
@@ -2145,6 +2231,14 @@
                                     "profile_image_url": {
                                         "type": "string",
                                         "example": "https://site.com/foto.jpg"
+                                    },
+                                    "uf": {
+                                        "type": "string",
+                                        "example": "SP"
+                                    },
+                                    "municipio_ibge": {
+                                        "type": "string",
+                                        "example": "3550308"
                                     }
                                 },
                                 "type": "object"

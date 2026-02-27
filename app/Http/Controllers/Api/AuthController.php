@@ -185,4 +185,48 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Logout realizado'], 200);
     }
+
+    /**
+     * @OA\Put(
+     *     path="/api/user/fcm-token",
+     *     tags={"Auth"},
+     *     summary="Atualiza o FCM token do usuário autenticado",
+     *     description="Atualiza o token de notificação push (FCM) do usuário autenticado",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"fcm_token"},
+     *             @OA\Property(property="fcm_token", type="string", example="dYr3kExampleToken...")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="FCM token atualizado com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="FCM token atualizado com sucesso")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Não autenticado"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="Dados inválidos"
+     *     )
+     * )
+     */
+    public function updateFcmToken(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
+        ]);
+
+        $request->user()->update(['fcm_token' => $request->fcm_token]);
+
+        return response()->json(['message' => 'FCM token atualizado com sucesso'], 200);
+    }
 }

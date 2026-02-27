@@ -6,6 +6,7 @@ use App\Actions\Games\JoinGameAction;
 use App\Actions\Games\LeaveGameAction;
 use App\Exceptions\Games\GameIsFullException;
 use App\Models\Game;
+use App\Models\Player;
 use Illuminate\Http\Request;
 
 /**
@@ -82,10 +83,10 @@ class GameController extends Controller
 
         $status = $request->query('status', 'open');
         $eagerLoad = [
-            'players:id,full_name,level,side',
+            'players:id,full_name,level,side,profile_image_url',
             'owner:id,full_name',
             'club:id,name,city,state',
-            'court:id,club_id,name,type,covered'
+            'court:id,club_id,name,type,covered,price_per_hour'
         ];
 
         // Partidas que o player já participa
@@ -160,10 +161,10 @@ class GameController extends Controller
         }
 
         $eagerLoad = [
-            'players:id,full_name,level,side',
+            'players:id,full_name,level,side,profile_image_url',
             'owner:id,full_name',
             'club:id,name,city,state',
-            'court:id,club_id,name,type,covered'
+            'court:id,club_id,name,type,covered,price_per_hour'
         ];
 
         // Partidas públicas abertas (exceto as do próprio player)
@@ -221,10 +222,10 @@ class GameController extends Controller
     public function show(Request $request, $id)
     {
         $game = Game::with([
-            'players:id,full_name,level,side',
+            'players:id,full_name,level,side,profile_image_url',
             'owner:id,full_name',
             'club:id,name,city,state',
-            'court:id,club_id,name,type,covered'
+            'court:id,club_id,name,type,covered,price_per_hour'
         ])->findOrFail($id);
 
         if ($request->user()->cannot('view', $game)) {
@@ -443,6 +444,73 @@ class GameController extends Controller
         app(LeaveGameAction::class)->execute($game, $player);
 
         return response()->json(['message' => 'Saiu da partida']);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/game/{game}/players/{player}",
+     *     tags={"Games"},
+     *     summary="Remove um jogador da partida",
+     *     description="Permite ao dono da partida remover outro jogador. O dono não pode remover a si mesmo.",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="game",
+     *         in="path",
+     *         required=true,
+     *         description="ID da partida",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="player",
+     *         in="path",
+     *         required=true,
+     *         description="ID do jogador a ser removido",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Jogador removido da partida",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Jogador removido da partida")
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Usuário não possui player vinculado"),
+     *     @OA\Response(response=403, description="Apenas o dono da partida pode remover jogadores"),
+     *     @OA\Response(response=404, description="Jogador não está na partida"),
+     *     @OA\Response(response=409, description="O dono não pode remover a si mesmo")
+     * )
+     */
+    public function removePlayer(Request $request, Game $game, Player $player)
+    {
+        $currentPlayer = $request->user()->player;
+
+        if (!$currentPlayer) {
+            return response()->json(['message' => 'Usuário não possui player vinculado'], 400);
+        }
+
+        if ($game->owner_player_id !== $currentPlayer->id) {
+            return response()->json(['message' => 'Apenas o dono da partida pode remover jogadores'], 403);
+        }
+
+        if ($player->id === $currentPlayer->id) {
+            return response()->json(['message' => 'O dono não pode remover a si mesmo da partida'], 409);
+        }
+
+        $isInGame = $game->players()->where('players.id', $player->id)->exists();
+
+        if (!$isInGame) {
+            return response()->json(['message' => 'Jogador não está na partida'], 404);
+        }
+
+        $game->players()->detach($player->id);
+
+        if ($game->status === 'full') {
+            $game->update(['status' => 'open']);
+        }
+
+        return response()->json(['message' => 'Jogador removido da partida'], 200);
     }
 
     /**
