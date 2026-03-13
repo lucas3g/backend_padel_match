@@ -490,7 +490,7 @@ class GameController extends Controller
             return response()->json(['message' => 'Usuário não possui player vinculado'], 400);
         }
 
-        if ($game->owner_player_id !== $currentPlayer->id) {
+        if ((int) $game->owner_player_id !== (int) $currentPlayer->id) {
             return response()->json(['message' => 'Apenas o dono da partida pode remover jogadores'], 403);
         }
 
