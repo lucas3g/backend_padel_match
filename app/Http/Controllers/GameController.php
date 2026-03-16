@@ -504,12 +504,6 @@ class GameController extends Controller
             return response()->json(['message' => 'Jogador não está na partida'], 404);
         }
 
-        $game->players()->detach($player->id);
-
-        if ($game->status === 'full') {
-            $game->update(['status' => 'open']);
-        }
-
         app(LeaveGameAction::class)->execute($game, $player);
 
         return response()->json(['message' => 'Jogador removido da partida'], 200);
