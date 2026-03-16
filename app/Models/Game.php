@@ -48,8 +48,13 @@ class Game extends Model
     public function players()
     {
         return $this->belongsToMany(Player::class, 'game_players')
-                    ->withPivot('joined_at')
+                    ->withPivot('joined_at', 'team')
                     ->withTimestamps();
+    }
+
+    public function sets()
+    {
+        return $this->hasMany(GameSet::class)->orderBy('set_number');
     }
 
     public function invitations()

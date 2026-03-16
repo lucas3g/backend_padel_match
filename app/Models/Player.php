@@ -39,6 +39,10 @@ class Player extends Model
         'updated_at',
     ];
 
+    protected $casts = [
+        'preferred_locations' => 'array',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

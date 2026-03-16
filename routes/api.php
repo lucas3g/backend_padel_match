@@ -6,8 +6,9 @@ use App\Http\Controllers\ClubCourtController;
 use App\Http\Controllers\CourtController;
 use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\GameFinalizationController;
 use App\Http\Controllers\GameInvitationController;
-
+use App\Http\Controllers\PlayerSuggestionController;
 use App\Http\Controllers\PlayerController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -36,6 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::get('/players', [PlayerController::class, 'index']);
+    Route::get('/players/suggest', [PlayerSuggestionController::class, 'standalone']);
     Route::get('/player/{id?}', [PlayerController::class, 'show']);
     Route::post('/player', [PlayerController::class, 'store']);
     Route::put('/player', [PlayerController::class, 'update']);
@@ -60,6 +62,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/game/{id}', [GameController::class, 'show']);
     Route::post('/game', [GameController::class, 'store']);
     Route::put('/game/{id}', [GameController::class, 'update']);
+    Route::post('/game/{game}/finalize', [GameFinalizationController::class, 'finalize']);
+    Route::get('/game/{game}/sets', [GameFinalizationController::class, 'sets']);
+    Route::get('/game/{game}/suggest-players', [PlayerSuggestionController::class, 'forGame']);
     Route::post('/game/{game}/join', [GameController::class, 'join']);
     Route::post('/game/{game}/leave', [GameController::class, 'leave']);
     Route::delete('/game/{game}/players/{player}', [GameController::class, 'removePlayer']);
