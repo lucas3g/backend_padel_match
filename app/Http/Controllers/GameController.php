@@ -510,6 +510,8 @@ class GameController extends Controller
             $game->update(['status' => 'open']);
         }
 
+        app(LeaveGameAction::class)->execute($game, $player);
+
         return response()->json(['message' => 'Jogador removido da partida'], 200);
     }
 
