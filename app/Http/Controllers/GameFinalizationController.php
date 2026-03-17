@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\GameFinalized;
 use App\Models\Game;
 use App\Models\GameSet;
 use App\Models\PlayerStat;
@@ -181,6 +182,8 @@ class GameFinalizationController extends Controller
                 'team2_score' => !empty($setsData) ? $team2SetsWon : $game->team2_score,
             ]);
         });
+
+        event(new GameFinalized($game));
 
         $game->load('sets');
 

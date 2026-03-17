@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Games\JoinGameAction;
 use App\Actions\Games\LeaveGameAction;
 use App\Exceptions\Games\GameIsFullException;
+use App\Exceptions\Games\TeamIsFullException;
 use App\Models\Game;
 use App\Models\Player;
 use Illuminate\Http\Request;
@@ -363,9 +364,23 @@ class GameController extends Controller
      *         response=404,
      *         description="Partida não encontrada"
      *     ),
+     *     @OA\RequestBody(
+     *         required=false,
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="team",
+     *                 type="integer",
+     *                 enum={1,2},
+     *                 nullable=true,
+     *                 description="Time que o jogador deseja entrar (1 ou 2). Opcional. Máximo de 2 jogadores por time.",
+     *                 example=1
+     *             )
+     *         )
+     *     ),
+     *
      *     @OA\Response(
      *         response=409,
-     *         description="Conflito - partida fechada ou cheia"
+     *         description="Conflito - partida fechada, cheia ou time já está completo"
      *     )
      * )
      */
@@ -381,13 +396,91 @@ class GameController extends Controller
             return response()->json(['message' => 'Sem permissão para entrar nesta partida'], 403);
         }
 
+        $request->validate(['team' => 'nullable|integer|in:1,2']);
+        $team = $request->input('team') ? (int) $request->input('team') : null;
+
         try {
-            app(JoinGameAction::class)->execute($game, $player);
+            app(JoinGameAction::class)->execute($game, $player, $team);
         } catch (GameIsFullException $e) {
+            return response()->json(['message' => $e->getMessage()], 409);
+        } catch (TeamIsFullException $e) {
             return response()->json(['message' => $e->getMessage()], 409);
         }
 
         return response()->json(['message' => 'Entrou na partida']);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/game/{game}/teams",
+     *     tags={"Games"},
+     *     summary="Retorna os times de uma partida",
+     *     description="Retorna os jogadores separados por time (time1, time2 e sem time definido).",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="game",
+     *         in="path",
+     *         required=true,
+     *         description="ID da partida",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Jogadores separados por time",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="team1", type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="integer", example=1),
+     *                     @OA\Property(property="full_name", type="string", example="João Silva"),
+     *                     @OA\Property(property="level", type="string", example="intermediario"),
+     *                     @OA\Property(property="side", type="string", example="direita")
+     *                 )
+     *             ),
+     *             @OA\Property(property="team2", type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="full_name", type="string"),
+     *                     @OA\Property(property="level", type="string"),
+     *                     @OA\Property(property="side", type="string")
+     *                 )
+     *             ),
+     *             @OA\Property(property="unassigned", type="array",
+     *                 @OA\Items(
+     *                     @OA\Property(property="id", type="integer"),
+     *                     @OA\Property(property="full_name", type="string"),
+     *                     @OA\Property(property="level", type="string"),
+     *                     @OA\Property(property="side", type="string")
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=403, description="Sem permissão para visualizar esta partida"),
+     *     @OA\Response(response=404, description="Partida não encontrada")
+     * )
+     */
+    public function teams(Request $request, Game $game)
+    {
+        if ($request->user()->cannot('view', $game)) {
+            return response()->json(['message' => 'Sem permissão para visualizar esta partida'], 403);
+        }
+
+        $players = $game->players()
+            ->get(['players.id', 'players.full_name', 'players.level', 'players.side']);
+
+        $format = fn ($col) => $col->map(fn ($p) => [
+            'id'        => $p->id,
+            'full_name' => $p->full_name,
+            'level'     => $p->level,
+            'side'      => $p->side,
+        ])->values();
+
+        return response()->json([
+            'team1'      => $format($players->filter(fn ($p) => (int) $p->pivot->team === 1)),
+            'team2'      => $format($players->filter(fn ($p) => (int) $p->pivot->team === 2)),
+            'unassigned' => $format($players->filter(fn ($p) => $p->pivot->team === null)),
+        ]);
     }
 
     /**

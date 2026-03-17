@@ -2,6 +2,14 @@
 
 namespace App\Providers;
 
+use App\Events\GameFinalized;
+use App\Events\GameInvitationSent;
+use App\Events\PlayerJoinedGame;
+use App\Events\PlayerLeftGame;
+use App\Listeners\NotifyPlayerOnInvitation;
+use App\Listeners\NotifyPlayersOnGameFinalized;
+use App\Listeners\NotifyPlayersOnGameJoin;
+use App\Listeners\NotifyPlayersOnGameLeave;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -17,6 +25,18 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
+        ],
+        PlayerJoinedGame::class => [
+            NotifyPlayersOnGameJoin::class,
+        ],
+        PlayerLeftGame::class => [
+            NotifyPlayersOnGameLeave::class,
+        ],
+        GameInvitationSent::class => [
+            NotifyPlayerOnInvitation::class,
+        ],
+        GameFinalized::class => [
+            NotifyPlayersOnGameFinalized::class,
         ],
     ];
 

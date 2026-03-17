@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Games\AcceptGameInvitationAction;
+use App\Events\GameInvitationSent;
 use App\Exceptions\Games\GameIsFullException;
 use App\Exceptions\Games\GameNotOpenException;
 use App\Models\Game;
@@ -109,6 +110,7 @@ class GameInvitationController extends Controller
             if ($existingInvite->status === 'rejected') {
                 $existingInvite->update(['status' => 'pending']);
                 $existingInvite->load('invitedBy:id,full_name');
+                event(new GameInvitationSent($existingInvite));
                 return response()->json([
                     'message' => 'Convite reenviado',
                     'data' => $existingInvite
@@ -128,6 +130,7 @@ class GameInvitationController extends Controller
         ]);
 
         $invitation->load('invitedBy:id,full_name');
+        event(new GameInvitationSent($invitation));
         return response()->json([
             'message' => 'Convite enviado',
             'data' => $invitation

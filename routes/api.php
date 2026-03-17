@@ -64,6 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/game/{id}', [GameController::class, 'update']);
     Route::post('/game/{game}/finalize', [GameFinalizationController::class, 'finalize']);
     Route::get('/game/{game}/sets', [GameFinalizationController::class, 'sets']);
+    Route::get('/game/{game}/teams', [GameController::class, 'teams']);
     Route::get('/game/{game}/suggest-players', [PlayerSuggestionController::class, 'forGame']);
     Route::post('/game/{game}/join', [GameController::class, 'join']);
     Route::post('/game/{game}/leave', [GameController::class, 'leave']);
