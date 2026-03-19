@@ -30,6 +30,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'fcm_token',
+        'club_id',
     ];
 
     /**
@@ -57,5 +58,10 @@ class User extends Authenticatable implements FilamentUser
     public function player()
     {
         return $this->hasOne(Player::class);
+    }
+
+    public function club()
+    {
+        return $this->belongsTo(Club::class);
     }
 }

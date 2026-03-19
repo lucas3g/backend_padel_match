@@ -3,9 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Models\Club;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -24,6 +26,8 @@ class UserResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $clubManagerId = Role::where('name', 'club_manager')->value('id');
+
         return $form->schema([
             Forms\Components\Section::make('Dados do Usuário')->schema([
                 Forms\Components\TextInput::make('name')
@@ -48,7 +52,17 @@ class UserResource extends Resource
                     ->label('Roles')
                     ->relationship('roles', 'name')
                     ->options(fn () => Role::all()->pluck('name', 'id'))
-                    ->columns(3),
+                    ->columns(3)
+                    ->live(),
+
+                Forms\Components\Select::make('club_id')
+                    ->label('Clube')
+                    ->options(fn () => Club::orderBy('name')->pluck('name', 'id'))
+                    ->searchable()
+                    ->preload()
+                    ->placeholder('Selecione o clube')
+                    ->visible(fn (Get $get) => in_array($clubManagerId, (array) $get('roles')))
+                    ->required(fn (Get $get) => in_array($clubManagerId, (array) $get('roles'))),
             ]),
         ]);
     }
@@ -68,6 +82,11 @@ class UserResource extends Resource
                     ->label('Roles')
                     ->badge()
                     ->separator(','),
+                Tables\Columns\TextColumn::make('club.name')
+                    ->label('Clube')
+                    ->searchable()
+                    ->sortable()
+                    ->default('—'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Cadastrado em')
                     ->dateTime('d/m/Y')

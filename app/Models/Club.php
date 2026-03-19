@@ -53,4 +53,9 @@ class Club extends Model
     {
         return $this->hasMany(Court::class);
     }
+
+    public function managers()
+    {
+        return $this->hasMany(User::class);
+    }
 }
