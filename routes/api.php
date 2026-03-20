@@ -59,17 +59,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/game', [GameController::class, 'index']);
     Route::get('/game/available', [GameController::class, 'available']);
     Route::get('/game/invitations', [GameInvitationController::class, 'myInvitations']);
-    Route::get('/game/{id}', [GameController::class, 'show']);
     Route::post('/game', [GameController::class, 'store']);
-    Route::put('/game/{id}', [GameController::class, 'update']);
-    Route::post('/game/{game}/finalize', [GameFinalizationController::class, 'finalize']);
-    Route::get('/game/{game}/sets', [GameFinalizationController::class, 'sets']);
+
+    // Rotas específicas (multi-segmento) antes das genéricas com {id}
     Route::get('/game/{game}/teams', [GameController::class, 'teams']);
+    Route::get('/game/{game}/sets', [GameFinalizationController::class, 'sets']);
     Route::get('/game/{game}/suggest-players', [PlayerSuggestionController::class, 'forGame']);
+    Route::post('/game/{game}/finalize', [GameFinalizationController::class, 'finalize']);
     Route::post('/game/{game}/join', [GameController::class, 'join']);
     Route::post('/game/{game}/leave', [GameController::class, 'leave']);
     Route::delete('/game/{game}/players/{player}', [GameController::class, 'removePlayer']);
     Route::put('/game/{game}/players/{player}/team', [GameController::class, 'assignTeam']);
+
+    // Rotas genéricas por ID
+    Route::get('/game/{id}', [GameController::class, 'show']);
+    Route::put('/game/{id}', [GameController::class, 'update']);
 
     // Convites de partidas
     Route::post('/game/invitation/{invitation}/accept', [GameInvitationController::class, 'accept']);
