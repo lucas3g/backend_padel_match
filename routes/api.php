@@ -69,6 +69,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/game/{game}/join', [GameController::class, 'join']);
     Route::post('/game/{game}/leave', [GameController::class, 'leave']);
     Route::delete('/game/{game}/players/{player}', [GameController::class, 'removePlayer']);
+    Route::put('/game/{game}/players/{player}/team', [GameController::class, 'assignTeam']);
 
     // Convites de partidas
     Route::post('/game/invitation/{invitation}/accept', [GameInvitationController::class, 'accept']);

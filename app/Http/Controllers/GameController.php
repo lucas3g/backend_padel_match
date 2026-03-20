@@ -575,6 +575,94 @@ class GameController extends Controller
      *     @OA\Response(response=409, description="O dono não pode remover a si mesmo")
      * )
      */
+    /**
+     * @OA\Put(
+     *     path="/api/game/{game}/players/{player}/team",
+     *     tags={"Games"},
+     *     summary="Atribui ou altera o time de um jogador",
+     *     description="Permite ao dono da partida definir ou alterar o time de um jogador já na partida. Passe null para remover o jogador de qualquer time.",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="game",
+     *         in="path",
+     *         required=true,
+     *         description="ID da partida",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Parameter(
+     *         name="player",
+     *         in="path",
+     *         required=true,
+     *         description="ID do jogador",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"team"},
+     *             @OA\Property(property="team", type="integer", enum={1,2}, nullable=true, example=1,
+     *                 description="Time do jogador (1 ou 2). Envie null para remover do time.")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Time atribuído com sucesso",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string", example="Time atribuído com sucesso"),
+     *             @OA\Property(property="player_id", type="integer", example=5),
+     *             @OA\Property(property="team", type="integer", nullable=true, example=1)
+     *         )
+     *     ),
+     *     @OA\Response(response=400, description="Usuário não possui player vinculado"),
+     *     @OA\Response(response=403, description="Apenas o dono da partida pode atribuir times"),
+     *     @OA\Response(response=404, description="Jogador não está na partida"),
+     *     @OA\Response(response=409, description="Time já está completo (máximo 2 jogadores por time)")
+     * )
+     */
+    public function assignTeam(Request $request, Game $game, Player $player)
+    {
+        $currentPlayer = $request->user()->player;
+
+        if (!$currentPlayer) {
+            return response()->json(['message' => 'Usuário não possui player vinculado'], 400);
+        }
+
+        if ((int) $game->owner_player_id !== (int) $currentPlayer->id) {
+            return response()->json(['message' => 'Apenas o dono da partida pode atribuir times'], 403);
+        }
+
+        $isInGame = $game->players()->where('players.id', $player->id)->exists();
+
+        if (!$isInGame) {
+            return response()->json(['message' => 'Jogador não está na partida'], 404);
+        }
+
+        $request->validate(['team' => 'nullable|integer|in:1,2']);
+        $team = $request->input('team') !== null ? (int) $request->input('team') : null;
+
+        if ($team !== null) {
+            $playersNoTime = $game->players()
+                ->wherePivot('team', $team)
+                ->where('players.id', '!=', $player->id)
+                ->count();
+
+            if ($playersNoTime >= 2) {
+                return response()->json(['message' => 'Time ' . $team . ' já está completo (máximo 2 jogadores)'], 409);
+            }
+        }
+
+        $game->players()->updateExistingPivot($player->id, ['team' => $team]);
+
+        return response()->json([
+            'message'   => 'Time atribuído com sucesso',
+            'player_id' => $player->id,
+            'team'      => $team,
+        ]);
+    }
+
     public function removePlayer(Request $request, Game $game, Player $player)
     {
         $currentPlayer = $request->user()->player;
@@ -620,19 +708,37 @@ class GameController extends Controller
      *
      *     @OA\RequestBody(
      *         required=true,
-     *         @OA\JsonContent(type="object")
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="title", type="string", example="Partida de sábado"),
+     *             @OA\Property(property="description", type="string", example="Partida amistosa"),
+     *             @OA\Property(property="type", type="string", enum={"public","private"}, example="private"),
+     *             @OA\Property(property="data_time", type="string", format="date-time", example="2026-04-05 10:00:00"),
+     *             @OA\Property(property="club_id", type="integer", example=1),
+     *             @OA\Property(property="court_id", type="integer", example=2),
+     *             @OA\Property(property="status", type="string", enum={"open","full","in_progress","completed","canceled"}, example="open"),
+     *             @OA\Property(property="game_type", type="string", enum={"casual","competitive","training"}, example="casual"),
+     *             @OA\Property(
+     *                 property="players",
+     *                 type="array",
+     *                 nullable=true,
+     *                 description="Lista opcional de jogadores a adicionar/atualizar na partida. Não remove jogadores já existentes.",
+     *                 @OA\Items(
+     *                     @OA\Property(property="player_id", type="integer", example=5),
+     *                     @OA\Property(property="team", type="integer", nullable=true, enum={1,2}, example=1,
+     *                         description="Time do jogador (1 ou 2). Opcional.")
+     *                 )
+     *             )
+     *         )
      *     ),
      *
      *     @OA\Response(
      *         response=200,
-     *         description="Clube atualizado",
+     *         description="Partida atualizada",
      *         @OA\JsonContent(type="object")
      *     ),
-     *
-     *     @OA\Response(
-     *         response=404,
-     *         description="Partida não encontrada"
-     *     )
+     *     @OA\Response(response=404, description="Partida não encontrada"),
+     *     @OA\Response(response=409, description="Limite de jogadores ou de time excedido")
      * )
      */
     public function update(Request $request, $id)
@@ -660,18 +766,64 @@ class GameController extends Controller
             "price" => 'nullable',
             "cost_per_player" => 'nullable',
             "game_type" => 'required|in:casual,competitive,training',
-            "duration_minutes" => 'nullable'
+            "duration_minutes" => 'nullable',
+            "players" => 'nullable|array',
+            "players.*.player_id" => 'required|integer|exists:players,id',
+            "players.*.team" => 'nullable|integer|in:1,2',
         ], [
             'type.required' => 'O tipo de partida é obrigatório. Defina entre publica ou privada',
             'status.required' => 'A status da partida é obrigatório.',
             'data_time.required' => 'A data e hora da partida é obrigatório.',
             'club_id.required' => 'O clube é obrigatório.',
             'court_id.required' => 'A quadra é obrigatório.',
-            'court_id.required' => 'O clube é obrigatório.',
+            'players.*.player_id.exists' => 'Um dos jogadores informados não existe.',
+            'players.*.team.in' => 'O time deve ser 1 ou 2.',
         ]);
 
         $game->update($data);
 
-        return response()->json($game);
+        if ($request->has('players')) {
+            $novosTotais = collect($request->input('players'));
+
+            $jaExistentes = $game->players()->pluck('players.id')->toArray();
+            $novosIds = $novosTotais->pluck('player_id')->diff($jaExistentes);
+            $totalAposAdd = count($jaExistentes) + count($novosIds);
+
+            if ($game->max_players && $totalAposAdd > $game->max_players) {
+                return response()->json([
+                    'message' => 'O número de jogadores excederia o máximo permitido (' . $game->max_players . ')'
+                ], 409);
+            }
+
+            foreach ($novosTotais as $item) {
+                $team = isset($item['team']) ? (int) $item['team'] : null;
+
+                if ($team !== null) {
+                    $noTime = $game->players()
+                        ->wherePivot('team', $team)
+                        ->where('players.id', '!=', $item['player_id'])
+                        ->count();
+
+                    if ($noTime >= 2) {
+                        return response()->json([
+                            'message' => "Time {$team} já está completo (máximo 2 jogadores)"
+                        ], 409);
+                    }
+                }
+
+                $game->players()->syncWithoutDetaching([
+                    $item['player_id'] => [
+                        'joined_at' => now(),
+                        'team' => $team,
+                    ]
+                ]);
+            }
+
+            if ($game->max_players && $game->players()->count() >= $game->max_players) {
+                $game->update(['status' => 'full']);
+            }
+        }
+
+        return response()->json($game->load('players'));
     }
 }

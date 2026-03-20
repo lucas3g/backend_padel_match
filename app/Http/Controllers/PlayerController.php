@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Player;
+use App\Rules\ValidCodigoIbge;
+use App\Rules\ValidUf;
 use Illuminate\Http\Request;
 
 /**
@@ -176,13 +178,18 @@ class PlayerController extends Controller
             "side" => 'required|in:left,right',
             "bio" => 'nullable|string|max:2500',
             "profile_image_url" => 'nullable',
-            "uf" => 'nullable|string|size:2',
-            "municipio_ibge" => 'nullable|string|size:7',
+            "uf" => ['nullable', 'string', 'size:2', new ValidUf()],
+            "municipio_ibge" => ['nullable', 'string', new ValidCodigoIbge($request->input('uf'))],
         ], [
             'full_name.required' => 'O nome do jogador é obrigatório.',
             'level.required' => 'A categoria do jogador é obrigatório.',
             'side.required' => 'O lado do jogador é obrigatório.',
+            'uf.size' => 'A UF deve ter exatamente 2 caracteres.',
         ]);
+
+        if (isset($data['uf'])) {
+            $data['uf'] = strtoupper($data['uf']);
+        }
 
         $player = $request->user()->player()->create($data);
 
@@ -241,13 +248,18 @@ class PlayerController extends Controller
             "side" => 'required|in:left,right,both',
             "bio" => 'nullable|string|max:2500',
             "profile_image_url" => 'nullable',
-            "uf" => 'nullable|string|size:2',
-            "municipio_ibge" => 'nullable|string|size:7',
+            "uf" => ['nullable', 'string', 'size:2', new ValidUf()],
+            "municipio_ibge" => ['nullable', 'string', new ValidCodigoIbge($request->input('uf'))],
         ], [
             'full_name.required' => 'O nome do jogador é obrigatório.',
             'level.required' => 'A categoria do jogador é obrigatório.',
             'side.required' => 'O lado do jogador é obrigatório.',
+            'uf.size' => 'A UF deve ter exatamente 2 caracteres.',
         ]);
+
+        if (isset($data['uf'])) {
+            $data['uf'] = strtoupper($data['uf']);
+        }
 
         $player->update($data);
 

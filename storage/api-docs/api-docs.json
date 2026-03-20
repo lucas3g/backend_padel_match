@@ -1590,6 +1590,28 @@
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "team": {
+                                        "description": "Time que o jogador deseja entrar (1 ou 2). Opcional. Máximo de 2 jogadores por time.",
+                                        "type": "integer",
+                                        "enum": [
+                                            1,
+                                            2
+                                        ],
+                                        "example": 1,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Entrou na partida com sucesso",
@@ -1617,7 +1639,118 @@
                         "description": "Partida não encontrada"
                     },
                     "409": {
-                        "description": "Conflito - partida fechada ou cheia"
+                        "description": "Conflito - partida fechada, cheia ou time já está completo"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/{game}/teams": {
+            "get": {
+                "tags": [
+                    "Games"
+                ],
+                "summary": "Retorna os times de uma partida",
+                "description": "Retorna os jogadores separados por time (time1, time2 e sem time definido).",
+                "operationId": "3f5f96d7bf7bd6419f3200148fed47be",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jogadores separados por time",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "team1": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "full_name": {
+                                                        "type": "string",
+                                                        "example": "João Silva"
+                                                    },
+                                                    "level": {
+                                                        "type": "string",
+                                                        "example": "intermediario"
+                                                    },
+                                                    "side": {
+                                                        "type": "string",
+                                                        "example": "direita"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "team2": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "full_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "level": {
+                                                        "type": "string"
+                                                    },
+                                                    "side": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "unassigned": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "full_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "level": {
+                                                        "type": "string"
+                                                    },
+                                                    "side": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Sem permissão para visualizar esta partida"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
                     }
                 },
                 "security": [
@@ -1680,14 +1813,14 @@
                 ]
             }
         },
-        "/api/game/{game}/players/{player}": {
-            "delete": {
+        "/api/game/{game}/players/{player}/team": {
+            "put": {
                 "tags": [
                     "Games"
                 ],
-                "summary": "Remove um jogador da partida",
-                "description": "Permite ao dono da partida remover outro jogador. O dono não pode remover a si mesmo.",
-                "operationId": "3e3babaac021742e317f3a005c5c36fe",
+                "summary": "Atribui ou altera o time de um jogador",
+                "description": "Permite ao dono da partida definir ou alterar o time de um jogador já na partida. Passe null para remover o jogador de qualquer time.",
+                "operationId": "2a3feff72a486529b5fe2f873748afc2",
                 "parameters": [
                     {
                         "name": "game",
@@ -1701,23 +1834,57 @@
                     {
                         "name": "player",
                         "in": "path",
-                        "description": "ID do jogador a ser removido",
+                        "description": "ID do jogador",
                         "required": true,
                         "schema": {
                             "type": "integer"
                         }
                     }
                 ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "team"
+                                ],
+                                "properties": {
+                                    "team": {
+                                        "description": "Time do jogador (1 ou 2). Envie null para remover do time.",
+                                        "type": "integer",
+                                        "enum": [
+                                            1,
+                                            2
+                                        ],
+                                        "example": 1,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
-                        "description": "Jogador removido da partida",
+                        "description": "Time atribuído com sucesso",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
-                                            "example": "Jogador removido da partida"
+                                            "example": "Time atribuído com sucesso"
+                                        },
+                                        "player_id": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "team": {
+                                            "type": "integer",
+                                            "example": 1,
+                                            "nullable": true
                                         }
                                     },
                                     "type": "object"
@@ -1729,13 +1896,13 @@
                         "description": "Usuário não possui player vinculado"
                     },
                     "403": {
-                        "description": "Apenas o dono da partida pode remover jogadores"
+                        "description": "Apenas o dono da partida pode atribuir times"
                     },
                     "404": {
                         "description": "Jogador não está na partida"
                     },
                     "409": {
-                        "description": "O dono não pode remover a si mesmo"
+                        "description": "Time já está completo (máximo 2 jogadores por time)"
                     }
                 },
                 "security": [
@@ -1769,6 +1936,81 @@
                     "content": {
                         "application/json": {
                             "schema": {
+                                "properties": {
+                                    "title": {
+                                        "type": "string",
+                                        "example": "Partida de sábado"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Partida amistosa"
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "public",
+                                            "private"
+                                        ],
+                                        "example": "private"
+                                    },
+                                    "data_time": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2026-04-05 10:00:00"
+                                    },
+                                    "club_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "court_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "open",
+                                            "full",
+                                            "in_progress",
+                                            "completed",
+                                            "canceled"
+                                        ],
+                                        "example": "open"
+                                    },
+                                    "game_type": {
+                                        "type": "string",
+                                        "enum": [
+                                            "casual",
+                                            "competitive",
+                                            "training"
+                                        ],
+                                        "example": "casual"
+                                    },
+                                    "players": {
+                                        "description": "Lista opcional de jogadores a adicionar/atualizar na partida. Não remove jogadores já existentes.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "player_id": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "team": {
+                                                    "description": "Time do jogador (1 ou 2). Opcional.",
+                                                    "type": "integer",
+                                                    "enum": [
+                                                        1,
+                                                        2
+                                                    ],
+                                                    "example": 1,
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "nullable": true
+                                    }
+                                },
                                 "type": "object"
                             }
                         }
@@ -1776,11 +2018,245 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "Clube atualizado",
+                        "description": "Partida atualizada",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    },
+                    "409": {
+                        "description": "Limite de jogadores ou de time excedido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/{game}/finalize": {
+            "post": {
+                "tags": [
+                    "Finalização de Partida"
+                ],
+                "summary": "Finaliza uma partida",
+                "description": "Marca a partida como concluída. Permite três modos de uso:\n     *     1) Apenas finalizar (body vazio);\n     *     2) Informar vencedor e/ou times;\n     *     3) Registrar placar por sets (múltiplos sets possíveis).\n     *     Somente o dono da partida pode finalizar. Atualiza estatísticas dos jogadores quando times e vencedor são informados.",
+                "operationId": "6e35b84fe8fd86d8dacbd9669a6d0971",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "winner_team": {
+                                        "description": "Time vencedor (1 ou 2). Se omitido com sets, será calculado automaticamente.",
+                                        "type": "integer",
+                                        "enum": [
+                                            1,
+                                            2
+                                        ],
+                                        "example": 1,
+                                        "nullable": true
+                                    },
+                                    "sets": {
+                                        "description": "Placar por sets. Cada set é um objeto com team1_score e team2_score.",
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "team1_score": {
+                                                    "type": "integer",
+                                                    "example": 6
+                                                },
+                                                "team2_score": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "nullable": true
+                                    },
+                                    "teams": {
+                                        "description": "Atribuição de jogadores por time (IDs de players). Necessário para atualizar estatísticas.",
+                                        "properties": {
+                                            "team1": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer"
+                                                },
+                                                "example": [
+                                                    1,
+                                                    2
+                                                ]
+                                            },
+                                            "team2": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer"
+                                                },
+                                                "example": [
+                                                    3,
+                                                    4
+                                                ]
+                                            }
+                                        },
+                                        "type": "object",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Partida finalizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Partida finalizada com sucesso"
+                                        },
+                                        "game": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "completed"
+                                                },
+                                                "winner_team": {
+                                                    "type": "integer",
+                                                    "example": 1,
+                                                    "nullable": true
+                                                },
+                                                "team1_score": {
+                                                    "type": "integer",
+                                                    "example": 2,
+                                                    "nullable": true
+                                                },
+                                                "team2_score": {
+                                                    "type": "integer",
+                                                    "example": 0,
+                                                    "nullable": true
+                                                },
+                                                "sets": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "properties": {
+                                                            "set_number": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "team1_score": {
+                                                                "type": "integer",
+                                                                "example": 6
+                                                            },
+                                                            "team2_score": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "403": {
+                        "description": "Apenas o dono da partida pode finalizá-la"
+                    },
+                    "422": {
+                        "description": "Partida já finalizada ou parâmetros inválidos"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/game/{game}/sets": {
+            "get": {
+                "tags": [
+                    "Finalização de Partida"
+                ],
+                "summary": "Retorna os sets de uma partida",
+                "description": "Lista os placares por set de uma partida, ordenados pelo número do set.",
+                "operationId": "1f96cca7606a0966788abd2db8d74974",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sets da partida",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "set_number": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "team1_score": {
+                                                "type": "integer",
+                                                "example": 6
+                                            },
+                                            "team2_score": {
+                                                "type": "integer",
+                                                "example": 3
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
                                 }
                             }
                         }
@@ -2368,6 +2844,220 @@
                     }
                 ]
             }
+        },
+        "/api/game/{game}/suggest-players": {
+            "get": {
+                "tags": [
+                    "Sugestão de Jogadores"
+                ],
+                "summary": "Sugere jogadores para uma partida existente",
+                "description": "Retorna até 20 jogadores sugeridos para convidar, ordenados por pontuação de relevância (favoritos, partidas juntos, clube preferido, amigos, mesma cidade). Exclui jogadores já na partida e jogadores bloqueados.",
+                "operationId": "254bc32ae00b9b0a15cf699a201c7f04",
+                "parameters": [
+                    {
+                        "name": "game",
+                        "in": "path",
+                        "description": "ID da partida",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de jogadores sugeridos com pontuação",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 7
+                                            },
+                                            "full_name": {
+                                                "type": "string",
+                                                "example": "Carlos Lima"
+                                            },
+                                            "level": {
+                                                "type": "integer",
+                                                "example": 4
+                                            },
+                                            "side": {
+                                                "type": "string",
+                                                "example": "right",
+                                                "nullable": true
+                                            },
+                                            "profile_image_url": {
+                                                "type": "string",
+                                                "example": "https://...",
+                                                "nullable": true
+                                            },
+                                            "score": {
+                                                "description": "Pontuação de relevância (máx 90)",
+                                                "type": "integer",
+                                                "example": 65
+                                            },
+                                            "is_favorite": {
+                                                "type": "boolean",
+                                                "example": true
+                                            },
+                                            "games_together": {
+                                                "description": "Número de partidas jogadas juntos",
+                                                "type": "integer",
+                                                "example": 3
+                                            },
+                                            "club_match": {
+                                                "description": "Prefere o mesmo clube",
+                                                "type": "boolean",
+                                                "example": true
+                                            },
+                                            "is_friend": {
+                                                "type": "boolean",
+                                                "example": false
+                                            },
+                                            "same_city": {
+                                                "type": "boolean",
+                                                "example": true
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "404": {
+                        "description": "Partida não encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/players/suggest": {
+            "get": {
+                "tags": [
+                    "Sugestão de Jogadores"
+                ],
+                "summary": "Sugere jogadores antes da criação da partida",
+                "description": "Retorna até 20 jogadores sugeridos com base em filtros opcionais de clube e nível. Útil para montar o grupo antes de criar a partida.",
+                "operationId": "d975374d1bd7400570a0aa6753972681",
+                "parameters": [
+                    {
+                        "name": "club_id",
+                        "in": "query",
+                        "description": "ID do clube para filtrar preferências de local",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "min_level",
+                        "in": "query",
+                        "description": "Nível mínimo do jogador (1 a 10)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 2
+                        }
+                    },
+                    {
+                        "name": "max_level",
+                        "in": "query",
+                        "description": "Nível máximo do jogador (1 a 10)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "example": 6
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de jogadores sugeridos com pontuação",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 7
+                                            },
+                                            "full_name": {
+                                                "type": "string",
+                                                "example": "Ana Souza"
+                                            },
+                                            "level": {
+                                                "type": "integer",
+                                                "example": 3
+                                            },
+                                            "side": {
+                                                "type": "string",
+                                                "example": "left",
+                                                "nullable": true
+                                            },
+                                            "profile_image_url": {
+                                                "type": "string",
+                                                "nullable": true
+                                            },
+                                            "score": {
+                                                "type": "integer",
+                                                "example": 30
+                                            },
+                                            "is_favorite": {
+                                                "type": "boolean",
+                                                "example": false
+                                            },
+                                            "games_together": {
+                                                "type": "integer",
+                                                "example": 0
+                                            },
+                                            "club_match": {
+                                                "type": "boolean",
+                                                "example": false
+                                            },
+                                            "is_friend": {
+                                                "type": "boolean",
+                                                "example": false
+                                            },
+                                            "same_city": {
+                                                "type": "boolean",
+                                                "example": false
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "422": {
+                        "description": "Parâmetros inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "tags": [
@@ -2392,12 +3082,20 @@
             "description": "Gerenciamento de partidas"
         },
         {
+            "name": "Finalização de Partida",
+            "description": "Endpoints para finalizar partidas e registrar placares"
+        },
+        {
             "name": "Game Invitations",
             "description": "Gerenciamento de convites para partidas privadas"
         },
         {
             "name": "Player",
             "description": "Gerenciamento do perfil do jogador"
+        },
+        {
+            "name": "Sugestão de Jogadores",
+            "description": "Sugestão de jogadores para convite em partidas"
         },
         {
             "name": "Club/Courts",
