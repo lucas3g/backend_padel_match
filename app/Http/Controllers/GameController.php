@@ -291,13 +291,13 @@ class GameController extends Controller
             "title" => 'nullable|string|max:255',
             "description" => 'nullable|string|max:500',
             "type"  => 'required|in:public,private',
-            "data_time" => 'nullable|date',
+            "data_time" => 'nullable|date|after:now',
             "club_id" => 'required|exists:clubs,id',
             "court_id" => 'required|exists:courts,id',
             "custom_location" => 'nullable|string|max:500',
-            "min_level" => 'nullable|integer',
-            "max_level" => 'nullable|integer',
-            "max_players" => 'nullable|integer|min:2',
+            "min_level" => 'nullable|integer|lte:max_level',
+            "max_level" => 'nullable|integer|gte:min_level',
+            "max_players" => 'nullable|integer|in:2,4',
             "price" => 'nullable|numeric',
             "cost_per_player" => 'nullable|numeric',
             "game_type" => 'required|in:casual,competitive,training',
@@ -310,6 +310,19 @@ class GameController extends Controller
             return response()->json([
                 'message' => 'Usuário não possui player vinculado'
             ], 400);
+        }
+
+        $club = \App\Models\Club::find($data['club_id']);
+        if (!$club->active) {
+            return response()->json(['message' => 'Clube não está ativo'], 422);
+        }
+
+        $court = \App\Models\Court::find($data['court_id']);
+        if ($court->club_id != $club->id) {
+            return response()->json(['message' => 'A quadra informada não pertence ao clube selecionado'], 422);
+        }
+        if (!$court->active) {
+            return response()->json(['message' => 'Quadra não está ativa'], 422);
         }
 
         $game = new Game($data);
