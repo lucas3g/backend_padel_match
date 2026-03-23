@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
         Horizon::auth(function ($request) {
-            $allowed = array_filter(explode(',', env('HORIZON_ALLOWED_EMAILS', '')));
+            $allowed = array_filter(explode(',', config('services.horizon.allowed_emails', '')));
             return $request->user() && in_array($request->user()->email, $allowed);
         });
     }

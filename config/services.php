@@ -36,4 +36,8 @@ return [
         'project_id'  => env('FIREBASE_PROJECT_ID'),
     ],
 
+    'horizon' => [
+        'allowed_emails' => env('HORIZON_ALLOWED_EMAILS', ''),
+    ],
+
 ];
