@@ -82,7 +82,7 @@ class GameController extends Controller
             ], 400);
         }
 
-        $status = $request->query('status', 'open');
+        $status = $request->query('status');
         $eagerLoad = [
             'players:id,full_name,level,side,profile_image_url',
             'owner:id,full_name',
@@ -95,7 +95,7 @@ class GameController extends Controller
                 $q->whereHas('players', fn ($q) => $q->where('players.id', $player->id))
                   ->orWhere('owner_player_id', $player->id);
             })
-            ->where('status', $status)
+            ->when($status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->query('data_time'), fn ($q, $date) => $q->whereDate('data_time', $date))
             ->when($request->query('club_id'), fn ($q, $clubId) => $q->where('club_id', $clubId))
             ->when($request->query('min_level'), fn ($q, $level) => $q->where('min_level', '>=', $level))
@@ -109,7 +109,7 @@ class GameController extends Controller
             ->pluck('game_id');
 
         $invitedGames = Game::whereIn('id', $invitedGameIds)
-            ->where('status', $status)
+            ->when($status, fn ($q, $s) => $q->where('status', $s))
             ->where('type', 'private')
             ->whereDoesntHave('players', fn ($q) => $q->where('players.id', $player->id))
             ->when($request->query('data_time'), fn ($q, $date) => $q->whereDate('data_time', $date))
