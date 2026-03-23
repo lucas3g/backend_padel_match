@@ -90,8 +90,11 @@ class GameController extends Controller
             'court:id,club_id,name,type,covered,price_per_hour'
         ];
 
-        // Partidas que o player já participa
-        $joinedGames = $player->games()
+        // Partidas que o player participa ou é dono
+        $joinedGames = Game::where(function ($q) use ($player) {
+                $q->whereHas('players', fn ($q) => $q->where('players.id', $player->id))
+                  ->orWhere('owner_player_id', $player->id);
+            })
             ->where('status', $status)
             ->when($request->query('data_time'), fn ($q, $date) => $q->whereDate('data_time', $date))
             ->when($request->query('club_id'), fn ($q, $clubId) => $q->where('club_id', $clubId))
@@ -168,10 +171,11 @@ class GameController extends Controller
             'court:id,club_id,name,type,covered,price_per_hour'
         ];
 
-        // Partidas públicas abertas (exceto as do próprio player)
+        // Partidas públicas abertas (exceto as que o player já participa ou é dono)
         $publicGames = Game::where('type', 'public')
             ->where('status', 'open')
             ->where('owner_player_id', '!=', $player->id)
+            ->whereDoesntHave('players', fn ($q) => $q->where('players.id', $player->id))
             ->with($eagerLoad)
             ->get();
 
@@ -183,6 +187,7 @@ class GameController extends Controller
         $invitedGames = Game::whereIn('id', $invitedGameIds)
             ->where('status', 'open')
             ->where('type', 'private')
+            ->whereDoesntHave('players', fn ($q) => $q->where('players.id', $player->id))
             ->with($eagerLoad)
             ->get();
 
