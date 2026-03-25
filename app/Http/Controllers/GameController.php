@@ -23,7 +23,7 @@ class GameController extends Controller
      *     path="/api/game",
      *     tags={"Games"},
      *     summary="Lista partidas do usuário",
-     *     description="Lista as partidas do usuário logado (participando ou convidado) com filtros opcionais. Se status não for informado, retorna apenas partidas com status 'open'.",
+     *     description="Lista as partidas do usuário logado (participando ou convidado) com filtros opcionais. Se status não for informado, retorna partidas com status diferente de 'completed' e 'canceled'.",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(
@@ -95,7 +95,11 @@ class GameController extends Controller
                 $q->whereHas('players', fn ($q) => $q->where('players.id', $player->id))
                   ->orWhere('owner_player_id', $player->id);
             })
-            ->when($status, fn ($q, $s) => $q->where('status', $s))
+            ->when(
+                $status,
+                fn ($q, $s) => $q->where('status', $s),
+                fn ($q)     => $q->whereNotIn('status', ['completed', 'canceled'])
+            )
             ->when($request->query('data_time'), fn ($q, $date) => $q->whereDate('data_time', $date))
             ->when($request->query('club_id'), fn ($q, $clubId) => $q->where('club_id', $clubId))
             ->when($request->query('min_level'), fn ($q, $level) => $q->where('min_level', '>=', $level))
@@ -109,7 +113,11 @@ class GameController extends Controller
             ->pluck('game_id');
 
         $invitedGames = Game::whereIn('id', $invitedGameIds)
-            ->when($status, fn ($q, $s) => $q->where('status', $s))
+            ->when(
+                $status,
+                fn ($q, $s) => $q->where('status', $s),
+                fn ($q)     => $q->whereNotIn('status', ['completed', 'canceled'])
+            )
             ->where('type', 'private')
             ->whereDoesntHave('players', fn ($q) => $q->where('players.id', $player->id))
             ->when($request->query('data_time'), fn ($q, $date) => $q->whereDate('data_time', $date))

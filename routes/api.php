@@ -8,6 +8,7 @@ use App\Http\Controllers\FriendController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameFinalizationController;
 use App\Http\Controllers\GameInvitationController;
+use App\Http\Controllers\MunicipioController;
 use App\Http\Controllers\PlayerSuggestionController;
 use App\Http\Controllers\PlayerController;
 use Illuminate\Http\Request;
@@ -42,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/player', [PlayerController::class, 'store']);
     Route::put('/player', [PlayerController::class, 'update']);
     Route::get('me/player', [PlayerController::class, 'me']);
+
+    Route::get('/municipios', [MunicipioController::class, 'index']);
 
     Route::get('/clubs', [ClubController::class, 'index']);
     Route::get('/club/{id}', [ClubController::class, 'show']);
