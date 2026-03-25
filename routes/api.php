@@ -39,6 +39,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/players', [PlayerController::class, 'index']);
     Route::get('/players/suggest', [PlayerSuggestionController::class, 'standalone']);
+    Route::get('/player/{player}/perfil', [PlayerController::class, 'perfil']);
+    Route::get('/player/{player}/partidas', [PlayerController::class, 'partidas']);
     Route::get('/player/{id?}', [PlayerController::class, 'show']);
     Route::post('/player', [PlayerController::class, 'store']);
     Route::put('/player', [PlayerController::class, 'update']);

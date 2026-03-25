@@ -268,6 +268,199 @@ class PlayerController extends Controller
 
     /**
      * @OA\Get(
+     *     path="/api/player/{player}/perfil",
+     *     tags={"Player"},
+     *     summary="Perfil completo do player",
+     *     description="Retorna dados do player, estatísticas e últimos 5 resultados",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="player",
+     *         in="path",
+     *         required=true,
+     *         description="ID do player",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Perfil do player",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Jogador não encontrado")
+     * )
+     */
+    public function perfil(Player $player)
+    {
+        $player->load('stats');
+
+        $ultimosJogos = $player->games()
+            ->where('games.status', 'completed')
+            ->withPivot('team')
+            ->orderByDesc('data_time')
+            ->limit(5)
+            ->get(['games.id', 'games.winner_team', 'games.data_time']);
+
+        $ultimosResultados = $ultimosJogos->map(function ($game) {
+            $meuTime = $game->pivot->team;
+            if (!$meuTime || !$game->winner_team) {
+                return 'sem_resultado';
+            }
+            return $meuTime === $game->winner_team ? 'vitoria' : 'derrota';
+        })->values();
+
+        return response()->json([
+            'id'                 => $player->id,
+            'full_name'          => $player->full_name,
+            'level'              => $player->level,
+            'side'               => $player->side,
+            'bio'                => $player->bio,
+            'profile_image_url'  => $player->profile_image_url,
+            'data_nascimento'    => $player->data_nascimento,
+            'posicao'            => $player->posicao,
+            'uf'                 => $player->uf,
+            'municipio_ibge'     => $player->municipio_ibge,
+            'ranking_points'     => $player->ranking_points,
+            'ranking_position'   => $player->ranking_position,
+            'stats'              => $player->stats,
+            'ultimos_resultados' => $ultimosResultados,
+        ]);
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/player/{player}/partidas",
+     *     tags={"Player"},
+     *     summary="Histórico de partidas do player",
+     *     description="Retorna o histórico paginado de partidas concluídas com sets, times e resultado. Use o parâmetro 'resultado' para filtrar.",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\Parameter(
+     *         name="player",
+     *         in="path",
+     *         required=true,
+     *         description="ID do player",
+     *         @OA\Schema(type="integer", example=1)
+     *     ),
+     *     @OA\Parameter(
+     *         name="resultado",
+     *         in="query",
+     *         required=false,
+     *         description="Filtrar por resultado",
+     *         @OA\Schema(type="string", enum={"todos","vitoria","derrota"}, example="vitoria")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Lista paginada de partidas",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="data", type="array", @OA\Items(type="object")),
+     *             @OA\Property(
+     *                 property="meta",
+     *                 type="object",
+     *                 @OA\Property(property="current_page", type="integer", example=1),
+     *                 @OA\Property(property="last_page", type="integer", example=3),
+     *                 @OA\Property(property="per_page", type="integer", example=15),
+     *                 @OA\Property(property="total", type="integer", example=20)
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Jogador não encontrado")
+     * )
+     */
+    public function partidas(Request $request, Player $player)
+    {
+        $resultado = $request->query('resultado', 'todos');
+
+        $query = $player->games()
+            ->where('games.status', 'completed')
+            ->withPivot(['team', 'joined_at'])
+            ->with([
+                'sets',
+                'players' => fn ($q) => $q->withPivot('team')
+                    ->select('players.id', 'full_name', 'level', 'side', 'profile_image_url'),
+                'club:id,name',
+                'court:id,name',
+            ])
+            ->orderByDesc('data_time');
+
+        if ($resultado === 'vitoria') {
+            $query->whereRaw('game_players.team = games.winner_team');
+        } elseif ($resultado === 'derrota') {
+            $query->whereRaw('game_players.team != games.winner_team AND games.winner_team IS NOT NULL');
+        }
+
+        $paginated = $query->paginate(15);
+
+        $data = $paginated->getCollection()->map(function ($game) use ($player) {
+            $meuTime    = $game->pivot->team;
+            $winnerTeam = $game->winner_team;
+
+            if (!$meuTime || !$winnerTeam) {
+                $resultadoPartida = 'sem_resultado';
+            } else {
+                $resultadoPartida = $meuTime === $winnerTeam ? 'vitoria' : 'derrota';
+            }
+
+            $parceiros = $game->players
+                ->filter(fn ($p) => $p->id !== $player->id && $p->pivot->team === $meuTime)
+                ->map(fn ($p) => [
+                    'id'                => $p->id,
+                    'full_name'         => $p->full_name,
+                    'level'             => $p->level,
+                    'side'              => $p->side,
+                    'profile_image_url' => $p->profile_image_url,
+                ])
+                ->values();
+
+            $adversarios = $game->players
+                ->filter(fn ($p) => $p->pivot->team !== $meuTime && $p->pivot->team !== null)
+                ->map(fn ($p) => [
+                    'id'                => $p->id,
+                    'full_name'         => $p->full_name,
+                    'level'             => $p->level,
+                    'side'              => $p->side,
+                    'profile_image_url' => $p->profile_image_url,
+                ])
+                ->values();
+
+            return [
+                'id'           => $game->id,
+                'data'         => $game->data_time,
+                'game_type'    => $game->game_type,
+                'type'         => $game->type,
+                'clube'        => $game->club?->name,
+                'quadra'       => $game->court?->name,
+                'resultado'    => $resultadoPartida,
+                'meu_time'     => $meuTime,
+                'time_vencedor' => $winnerTeam,
+                'placar'       => [
+                    'time1_sets' => $game->team1_score,
+                    'time2_sets' => $game->team2_score,
+                ],
+                'sets'         => $game->sets->map(fn ($s) => [
+                    'set'   => $s->set_number,
+                    'time1' => $s->team1_score,
+                    'time2' => $s->team2_score,
+                ])->values(),
+                'parceiros'  => $parceiros,
+                'adversarios' => $adversarios,
+            ];
+        });
+
+        return response()->json([
+            'data' => $data,
+            'meta' => [
+                'current_page' => $paginated->currentPage(),
+                'last_page'    => $paginated->lastPage(),
+                'per_page'     => $paginated->perPage(),
+                'total'        => $paginated->total(),
+            ],
+        ]);
+    }
+
+    /**
+     * @OA\Get(
      *     path="/api/me/player",
      *     tags={"Player"},
      *     summary="Player vinculado ao usuário",
