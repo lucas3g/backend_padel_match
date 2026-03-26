@@ -6,6 +6,7 @@ use App\Events\GameFinalized;
 use App\Events\GameInvitationSent;
 use App\Events\PlayerJoinedGame;
 use App\Events\PlayerLeftGame;
+use App\Events\TeamsUpdated;
 use App\Listeners\NotifyPlayerOnInvitation;
 use App\Listeners\NotifyPlayersOnGameFinalized;
 use App\Listeners\NotifyPlayersOnGameJoin;
@@ -38,6 +39,7 @@ class EventServiceProvider extends ServiceProvider
         GameFinalized::class => [
             NotifyPlayersOnGameFinalized::class,
         ],
+        TeamsUpdated::class => [],
     ];
 
     /**

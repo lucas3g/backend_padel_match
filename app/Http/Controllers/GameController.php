@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Games\JoinGameAction;
 use App\Actions\Games\LeaveGameAction;
+use App\Events\TeamsUpdated;
 use App\Exceptions\Games\GameIsFullException;
 use App\Exceptions\Games\TeamIsFullException;
 use App\Models\Game;
@@ -681,6 +682,8 @@ class GameController extends Controller
         }
 
         $game->players()->updateExistingPivot($player->id, ['team' => $team]);
+
+        event(new TeamsUpdated($game));
 
         return response()->json([
             'message'   => 'Time atribuído com sucesso',
