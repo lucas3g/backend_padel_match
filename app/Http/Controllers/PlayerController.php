@@ -443,6 +443,13 @@ class PlayerController extends Controller
                     'time1' => $s->team1_score,
                     'time2' => $s->team2_score,
                 ])->values(),
+                'eu'         => [
+                    'id'                => $player->id,
+                    'full_name'         => $player->full_name,
+                    'level'             => $player->level,
+                    'side'              => $player->side,
+                    'profile_image_url' => $player->profile_image_url,
+                ],
                 'parceiros'  => $parceiros,
                 'adversarios' => $adversarios,
             ];

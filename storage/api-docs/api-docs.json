@@ -1294,7 +1294,7 @@
                     "Games"
                 ],
                 "summary": "Lista partidas do usuário",
-                "description": "Lista as partidas do usuário logado (participando ou convidado) com filtros opcionais. Se status não for informado, retorna apenas partidas com status 'open'.",
+                "description": "Lista as partidas do usuário logado (participando ou convidado) com filtros opcionais. Se status não for informado, retorna partidas com status diferente de 'completed' e 'canceled'.",
                 "operationId": "589589f26003a22c288f69fb4ded72b0",
                 "parameters": [
                     {
@@ -2521,6 +2521,70 @@
                 ]
             }
         },
+        "/api/municipios": {
+            "get": {
+                "tags": [
+                    "Municípios"
+                ],
+                "summary": "Lista municípios por UF",
+                "description": "Retorna todos os municípios de uma UF, ordenados por nome",
+                "operationId": "d284659ad193a11b02a7150e785420fe",
+                "parameters": [
+                    {
+                        "name": "uf",
+                        "in": "query",
+                        "description": "Sigla da UF (ex: SC, SP, RS)",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 2,
+                            "minLength": 2,
+                            "example": "SC"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de municípios",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "codigo_ibge": {
+                                                "type": "integer",
+                                                "example": 4204202
+                                            },
+                                            "descricao": {
+                                                "type": "string",
+                                                "example": "Chapecó"
+                                            },
+                                            "uf": {
+                                                "type": "string",
+                                                "example": "SC"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "UF não informada ou inválida"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/players": {
             "get": {
                 "tags": [
@@ -2812,6 +2876,134 @@
                 ]
             }
         },
+        "/api/player/{player}/perfil": {
+            "get": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Perfil completo do player",
+                "description": "Retorna dados do player, estatísticas e últimos 5 resultados",
+                "operationId": "6f908ca2cb1b3fa5320608d461ba8957",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do player",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Perfil do player",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Jogador não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/player/{player}/partidas": {
+            "get": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Histórico de partidas do player",
+                "description": "Retorna o histórico paginado de partidas concluídas com sets, times e resultado. Use o parâmetro 'resultado' para filtrar.",
+                "operationId": "6689d58797c99e07b28d18fd84ef3377",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do player",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "resultado",
+                        "in": "query",
+                        "description": "Filtrar por resultado",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "todos",
+                                "vitoria",
+                                "derrota"
+                            ],
+                            "example": "vitoria"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de partidas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Jogador não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/me/player": {
             "get": {
                 "tags": [
@@ -3088,6 +3280,10 @@
         {
             "name": "Game Invitations",
             "description": "Gerenciamento de convites para partidas privadas"
+        },
+        {
+            "name": "Municípios",
+            "description": "Consulta de municípios por UF"
         },
         {
             "name": "Player",
