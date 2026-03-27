@@ -37,7 +37,8 @@ class AuthController extends Controller
      *             required={"name","email","password"},
      *             @OA\Property(property="name", type="string", example="Mateus Perego"),
      *             @OA\Property(property="email", type="string", format="email", example="mateus@email.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="123456")
+     *             @OA\Property(property="password", type="string", format="password", example="123456"),
+     *             @OA\Property(property="fcm_token", type="string", nullable=true, example="dYr3kExampleToken...")
      *         )
      *     ),
      *
@@ -54,15 +55,17 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $data = $request->validate([
-            'name'     => 'required|string',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|min:6'
+            'name'      => 'required|string',
+            'email'     => 'required|email|unique:users',
+            'password'  => 'required|min:6',
+            'fcm_token' => 'nullable|string',
         ]);
 
         $user = User::create([
-            'name'     => $data['name'],
-            'email'    => $data['email'],
-            'password' => Hash::make($data['password']),
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'password'  => Hash::make($data['password']),
+            'fcm_token' => $data['fcm_token'] ?? null,
         ]);
 
         return response()->json([
