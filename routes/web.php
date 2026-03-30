@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', fn () => redirect(url('/admin')));
+Route::get('/', fn () => redirect(url('/gerente')));
 
 Route::get('/dashboard', function () {
     return view('dashboard');
