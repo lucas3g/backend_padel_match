@@ -9,6 +9,8 @@ class Player extends Model
 {
     use HasFactory;
 
+    protected $appends = ['municipio_descricao'];
+
     protected $fillable = [
         'user_id',
         'full_name',
@@ -42,6 +44,16 @@ class Player extends Model
     protected $casts = [
         'preferred_locations' => 'array',
     ];
+
+    public function getMunicipioDescricaoAttribute(): ?string
+    {
+        return $this->municipio?->descricao;
+    }
+
+    public function municipio()
+    {
+        return $this->belongsTo(Municipio::class, 'municipio_ibge', 'codigo_ibge');
+    }
 
     public function user()
     {

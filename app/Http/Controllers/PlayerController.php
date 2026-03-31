@@ -83,6 +83,7 @@ class PlayerController extends Controller
             })
             ->when($request->query('uf'), fn ($q, $uf) => $q->where('uf', strtoupper($uf)))
             ->when($request->query('municipio_ibge'), fn ($q, $codigo) => $q->where('municipio_ibge', $codigo))
+            ->with('municipio')
             ->get();
 
         return response()->json($players);
@@ -120,6 +121,8 @@ class PlayerController extends Controller
                 'message' => 'Jogador não encontrado'
             ], 404);
         }
+
+        $player->load('municipio');
 
         return response()->json($player, 200);
     }
@@ -192,6 +195,7 @@ class PlayerController extends Controller
         }
 
         $player = $request->user()->player()->create($data);
+        $player->load('municipio');
 
         return response()->json($player, 201);
     }
@@ -262,6 +266,7 @@ class PlayerController extends Controller
         }
 
         $player->update($data);
+        $player->load('municipio');
 
         return response()->json($player);
     }
@@ -292,7 +297,7 @@ class PlayerController extends Controller
      */
     public function perfil(Player $player)
     {
-        $player->load('stats');
+        $player->load('stats', 'municipio');
 
         $ultimosJogos = $player->games()
             ->where('games.status', 'completed')
@@ -318,9 +323,10 @@ class PlayerController extends Controller
             'profile_image_url'  => $player->profile_image_url,
             'data_nascimento'    => $player->data_nascimento,
             'posicao'            => $player->posicao,
-            'uf'                 => $player->uf,
-            'municipio_ibge'     => $player->municipio_ibge,
-            'ranking_points'     => $player->ranking_points,
+            'uf'                  => $player->uf,
+            'municipio_ibge'      => $player->municipio_ibge,
+            'municipio_descricao' => $player->municipio?->descricao,
+            'ranking_points'      => $player->ranking_points,
             'ranking_position'   => $player->ranking_position,
             'stats'              => $player->stats,
             'ultimos_resultados' => $ultimosResultados,
@@ -498,6 +504,8 @@ class PlayerController extends Controller
                 'message' => 'Usuário não possui player vinculado'
             ], 404);
         }
+
+        $player->load('municipio');
 
         return response()->json($player, 200);
     }
