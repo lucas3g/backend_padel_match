@@ -43,6 +43,7 @@ class Player extends Model
 
     protected $casts = [
         'preferred_locations' => 'array',
+        'municipio_ibge' => 'integer',
     ];
 
     public function getMunicipioDescricaoAttribute(): ?string

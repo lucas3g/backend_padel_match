@@ -11,20 +11,22 @@ class ValidCodigoIbge implements ValidationRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        if (!preg_match('/^\d{7}$/', (string) $value)) {
+        $codigo = str_pad((string) $value, 7, '0', STR_PAD_LEFT);
+
+        if (!preg_match('/^\d{7}$/', $codigo)) {
             $fail('O código IBGE do município deve conter exatamente 7 dígitos numéricos.');
             return;
         }
 
         $municipios = $this->carregarMunicipios();
 
-        if (!isset($municipios[$value])) {
+        if (!isset($municipios[$codigo])) {
             $fail('O código IBGE informado não corresponde a nenhum município brasileiro.');
             return;
         }
 
         if ($this->uf !== null) {
-            $ufMunicipio = $municipios[$value];
+            $ufMunicipio = $municipios[$codigo];
             if (strtoupper($this->uf) !== $ufMunicipio) {
                 $fail("O código IBGE informado pertence ao estado {$ufMunicipio}, não à UF informada.");
             }

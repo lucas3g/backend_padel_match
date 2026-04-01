@@ -181,18 +181,22 @@ class PlayerController extends Controller
             "side" => 'required|in:left,right',
             "bio" => 'nullable|string|max:2500',
             "profile_image_url" => 'nullable',
-            "uf" => ['nullable', 'string', 'size:2', new ValidUf()],
-            "municipio_ibge" => ['nullable', 'string', new ValidCodigoIbge($request->input('uf'))],
+            "uf" => ['required', 'string', 'size:2', new ValidUf()],
+            "municipio_ibge" => ['required', 'integer', new ValidCodigoIbge($request->input('uf'))],
         ], [
             'full_name.required' => 'O nome do jogador é obrigatório.',
             'level.required' => 'A categoria do jogador é obrigatório.',
             'side.required' => 'O lado do jogador é obrigatório.',
+            'uf.required' => 'A UF é obrigatória.',
             'uf.size' => 'A UF deve ter exatamente 2 caracteres.',
+            'municipio_ibge.required' => 'O código do município é obrigatório.',
+            'municipio_ibge.integer' => 'O código do município deve ser um número inteiro.',
         ]);
 
         if (isset($data['uf'])) {
             $data['uf'] = strtoupper($data['uf']);
         }
+        $data['municipio_ibge'] = str_pad($data['municipio_ibge'], 7, '0', STR_PAD_LEFT);
 
         $player = $request->user()->player()->create($data);
         $player->load('municipio');
@@ -252,18 +256,22 @@ class PlayerController extends Controller
             "side" => 'required|in:left,right,both',
             "bio" => 'nullable|string|max:2500',
             "profile_image_url" => 'nullable',
-            "uf" => ['nullable', 'string', 'size:2', new ValidUf()],
-            "municipio_ibge" => ['nullable', 'string', new ValidCodigoIbge($request->input('uf'))],
+            "uf" => ['required', 'string', 'size:2', new ValidUf()],
+            "municipio_ibge" => ['required', 'integer', new ValidCodigoIbge($request->input('uf'))],
         ], [
             'full_name.required' => 'O nome do jogador é obrigatório.',
             'level.required' => 'A categoria do jogador é obrigatório.',
             'side.required' => 'O lado do jogador é obrigatório.',
+            'uf.required' => 'A UF é obrigatória.',
             'uf.size' => 'A UF deve ter exatamente 2 caracteres.',
+            'municipio_ibge.required' => 'O código do município é obrigatório.',
+            'municipio_ibge.integer' => 'O código do município deve ser um número inteiro.',
         ]);
 
         if (isset($data['uf'])) {
             $data['uf'] = strtoupper($data['uf']);
         }
+        $data['municipio_ibge'] = str_pad($data['municipio_ibge'], 7, '0', STR_PAD_LEFT);
 
         $player->update($data);
         $player->load('municipio');
