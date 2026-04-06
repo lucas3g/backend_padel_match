@@ -25,6 +25,10 @@ class User extends Authenticatable implements FilamentUser
             return $this->hasRole('club_manager') && !is_null($this->club_id);
         }
 
+        if ($panel->getId() === 'painel') {
+            return $this->hasRole('player');
+        }
+
         return false;
     }
 

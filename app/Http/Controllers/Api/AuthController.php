@@ -68,6 +68,8 @@ class AuthController extends Controller
             'fcm_token' => $data['fcm_token'] ?? null,
         ]);
 
+        $user->assignRole('player');
+
         return response()->json([
             'message' => 'Usuário criado com sucesso',
             'user' => $user
