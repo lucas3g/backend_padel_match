@@ -90,6 +90,18 @@ class GameInvitationController extends Controller
             ], 404);
         }
 
+        if (!$invitedPlayer->esta_disponivel) {
+            $mensagens = [
+                'machucado' => 'O jogador está machucado e indisponível no momento.',
+                'viajando'  => 'O jogador está viajando e indisponível no momento.',
+                'licenca'   => 'O jogador está de licença e indisponível no momento.',
+            ];
+            return response()->json([
+                'message'        => $mensagens[$invitedPlayer->disponibilidade] ?? 'O jogador está indisponível no momento.',
+                'disponivel_ate' => $invitedPlayer->disponivel_ate?->toDateString(),
+            ], 422);
+        }
+
         if ($game->players()->where('players.id', $playerId)->exists()) {
             return response()->json([
                 'message' => 'Jogador já está na partida'

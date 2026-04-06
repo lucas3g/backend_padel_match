@@ -5,6 +5,7 @@ use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubCourtController;
 use App\Http\Controllers\CourtController;
 use App\Http\Controllers\FriendController;
+use App\Http\Controllers\PlayerFavoriteClubController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\GameFinalizationController;
 use App\Http\Controllers\GameInvitationController;
@@ -45,6 +46,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/player', [PlayerController::class, 'store']);
     Route::put('/player', [PlayerController::class, 'update']);
     Route::get('me/player', [PlayerController::class, 'me']);
+    Route::patch('me/player/disponibilidade', [PlayerController::class, 'definirDisponibilidade']);
+    Route::get('me/player/clubes-favoritos', [PlayerFavoriteClubController::class, 'index']);
+    Route::put('me/player/clubes-favoritos', [PlayerFavoriteClubController::class, 'sync']);
+    Route::post('me/player/clubes-favoritos/{club}', [PlayerFavoriteClubController::class, 'store']);
+    Route::delete('me/player/clubes-favoritos/{club}', [PlayerFavoriteClubController::class, 'destroy']);
 
     Route::get('/municipios', [MunicipioController::class, 'index']);
 

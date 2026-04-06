@@ -194,10 +194,15 @@ class PlayerSuggestionController extends Controller
                 });
         }
 
-        // 3. Favoritos e amigos aceitos
+        // 3. Favoritos, amigos aceitos e clubes favoritos
         $favoriteIds = DB::table('player_favorites')
             ->where('player_id', $currentPlayer->id)
             ->pluck('favorite_player_id')
+            ->toArray();
+
+        $favoriteClubIds = DB::table('player_favorite_clubs')
+            ->where('player_id', $currentPlayer->id)
+            ->pluck('club_id')
             ->toArray();
 
         $friendIds = DB::table('friends')
@@ -218,6 +223,7 @@ class PlayerSuggestionController extends Controller
 
         $query = Player::query()
             ->where('is_active', true)
+            ->disponiveis()
             ->whereNotIn('id', $allExcludeIds);
 
         if ($minLevel !== null) {
@@ -228,28 +234,36 @@ class PlayerSuggestionController extends Controller
         }
 
         $candidates = $query
-            ->select('id', 'full_name', 'level', 'side', 'profile_image_url', 'municipio_ibge', 'preferred_locations')
+            ->select('id', 'full_name', 'level', 'side', 'profile_image_url', 'municipio_ibge')
             ->get();
 
-        // 5. Pontuar e ordenar
-        $currentLocations = $currentPlayer->preferred_locations ?? [];
+        // 5. Clubes favoritos dos candidatos (batch para evitar N+1)
+        $candidateIds = $candidates->pluck('id')->toArray();
+        $candidateFavoriteClubs = DB::table('player_favorite_clubs')
+            ->whereIn('player_id', $candidateIds)
+            ->get()
+            ->groupBy('player_id')
+            ->map(fn ($rows) => $rows->pluck('club_id')->toArray());
+
+        // 6. Pontuar e ordenar
         $currentMunicipio = $currentPlayer->municipio_ibge;
 
         return $candidates
             ->map(function (Player $p) use (
                 $favoriteIds, $gameTogetherCounts, $clubId,
-                $friendIds, $currentMunicipio, $currentLocations
+                $friendIds, $currentMunicipio, $favoriteClubIds,
+                $candidateFavoriteClubs
             ) {
                 $isFavorite    = in_array($p->id, $favoriteIds);
                 $gamesCount    = $gameTogetherCounts[$p->id] ?? 0;
                 $isFriend      = in_array($p->id, $friendIds);
-                $playerLocs    = $p->preferred_locations ?? [];
+                $playerClubIds = $candidateFavoriteClubs[$p->id] ?? [];
                 $sameCity      = $currentMunicipio !== null && $p->municipio_ibge === $currentMunicipio;
 
                 $clubMatch = false;
-                if ($clubId !== null && in_array($clubId, $playerLocs)) {
+                if ($clubId !== null && in_array($clubId, $playerClubIds)) {
                     $clubMatch = true;
-                } elseif (!empty($currentLocations) && !empty(array_intersect($currentLocations, $playerLocs))) {
+                } elseif (!empty($favoriteClubIds) && !empty(array_intersect($favoriteClubIds, $playerClubIds))) {
                     $clubMatch = true;
                 }
 

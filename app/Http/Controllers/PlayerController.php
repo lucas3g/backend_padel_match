@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Player;
 use App\Rules\ValidCodigoIbge;
 use App\Rules\ValidUf;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -83,6 +84,7 @@ class PlayerController extends Controller
             })
             ->when($request->query('uf'), fn ($q, $uf) => $q->where('uf', strtoupper($uf)))
             ->when($request->query('municipio_ibge'), fn ($q, $codigo) => $q->where('municipio_ibge', $codigo))
+            ->when($request->boolean('apenas_disponiveis'), fn ($q) => $q->disponiveis())
             ->with('municipio')
             ->get();
 
@@ -336,8 +338,12 @@ class PlayerController extends Controller
             'municipio_descricao' => $player->municipio?->descricao,
             'ranking_points'      => $player->ranking_points,
             'ranking_position'   => $player->ranking_position,
-            'stats'              => $player->stats,
-            'ultimos_resultados' => $ultimosResultados,
+            'stats'                    => $player->stats,
+            'ultimos_resultados'       => $ultimosResultados,
+            'disponibilidade'          => $player->disponibilidade,
+            'motivo_indisponibilidade' => $player->motivo_indisponibilidade,
+            'disponivel_ate'           => $player->disponivel_ate?->toDateString(),
+            'esta_disponivel'          => $player->esta_disponivel,
         ]);
     }
 
@@ -516,5 +522,66 @@ class PlayerController extends Controller
         $player->load('municipio');
 
         return response()->json($player, 200);
+    }
+
+    /**
+     * @OA\Patch(
+     *     path="/api/me/player/disponibilidade",
+     *     tags={"Player"},
+     *     summary="Define disponibilidade do player",
+     *     description="Permite ao player sinalizar indisponibilidade temporária (lesão, viagem, licença) com data opcional de retorno. A disponibilidade expira automaticamente na data informada.",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"disponibilidade"},
+     *             @OA\Property(property="disponibilidade", type="string", enum={"disponivel","machucado","viajando","licenca"}, example="machucado"),
+     *             @OA\Property(property="motivo_indisponibilidade", type="string", maxLength=500, nullable=true, example="Lesão no tornozelo direito"),
+     *             @OA\Property(property="disponivel_ate", type="string", format="date", nullable=true, example="2026-04-20")
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Disponibilidade atualizada com sucesso",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Usuário não possui player vinculado"),
+     *     @OA\Response(response=422, description="Dados inválidos")
+     * )
+     */
+    public function definirDisponibilidade(Request $request): JsonResponse
+    {
+        $player = $request->user()->player;
+
+        if (!$player) {
+            return response()->json(['message' => 'Usuário não possui player vinculado'], 404);
+        }
+
+        $data = $request->validate([
+            'disponibilidade'          => 'required|in:disponivel,machucado,viajando,licenca',
+            'motivo_indisponibilidade' => 'nullable|string|max:500',
+            'disponivel_ate'           => 'nullable|date|after:today',
+        ], [
+            'disponibilidade.required' => 'O status de disponibilidade é obrigatório.',
+            'disponibilidade.in'       => 'Status inválido. Use: disponivel, machucado, viajando ou licenca.',
+            'disponivel_ate.after'     => 'A data de retorno deve ser posterior a hoje.',
+        ]);
+
+        if ($data['disponibilidade'] === 'disponivel') {
+            $data['motivo_indisponibilidade'] = null;
+            $data['disponivel_ate']           = null;
+        }
+
+        $player->update($data);
+
+        return response()->json([
+            'message'                  => 'Disponibilidade atualizada com sucesso',
+            'disponibilidade'          => $player->disponibilidade,
+            'motivo_indisponibilidade' => $player->motivo_indisponibilidade,
+            'disponivel_ate'           => $player->disponivel_ate?->toDateString(),
+            'esta_disponivel'          => $player->esta_disponivel,
+        ]);
     }
 }
