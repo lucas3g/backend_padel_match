@@ -12,6 +12,7 @@ use App\Http\Controllers\GameInvitationController;
 use App\Http\Controllers\MunicipioController;
 use App\Http\Controllers\PlayerSuggestionController;
 use App\Http\Controllers\PlayerController;
+use App\Http\Controllers\RankingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -91,6 +92,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/game/invitation/{invitation}/reject', [GameInvitationController::class, 'reject']);
     Route::post('/game/{game}/invite/{player}', [GameInvitationController::class, 'invite']);
     Route::delete('/game/{game}/invite/{player}', [GameInvitationController::class, 'cancelInvite']);
+
+    // Ranking de jogadores e clubes
+    Route::prefix('ranking')->group(function () {
+        Route::get('/players',                 [RankingController::class, 'players']);
+        Route::get('/players/{player}',        [RankingController::class, 'playerCard']);
+        Route::get('/clubs',                   [RankingController::class, 'clubs']);
+        Route::get('/clubs/{club}/players',    [RankingController::class, 'clubPlayers']);
+        Route::get('/clubs/{club}',            [RankingController::class, 'clubCard']);
+    });
 
     // Amigos - rotas estáticas primeiro para evitar conflito com parâmetros dinâmicos
     Route::get('/friends', [FriendController::class, 'index']);

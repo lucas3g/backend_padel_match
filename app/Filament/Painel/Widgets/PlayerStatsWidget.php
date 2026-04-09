@@ -21,16 +21,23 @@ class PlayerStatsWidget extends BaseWidget
 
         $stats = $player->stats;
 
-        $totalMatches  = $stats?->total_matches  ?? 0;
-        $wins          = $stats?->wins           ?? 0;
-        $losses        = $stats?->losses         ?? 0;
-        $winRate       = $stats?->win_rate        ?? 0.0;
-        $currentStreak = $stats?->current_streak ?? 0;
-        $longestStreak = $stats?->longest_streak ?? 0;
-        $averageElo    = $stats?->average_elo    ?? 0;
+        $totalMatches    = $stats?->total_matches    ?? 0;
+        $wins            = $stats?->wins             ?? 0;
+        $losses          = $stats?->losses           ?? 0;
+        $winRate         = $stats?->win_rate          ?? 0.0;
+        $currentStreak   = $stats?->current_streak   ?? 0;
+        $longestStreak   = $stats?->longest_streak   ?? 0;
+        $averageElo      = $stats?->average_elo      ?? 0;
+        $rankingMatches  = $stats?->ranking_matches  ?? 0;
+        $rankingWins     = $stats?->ranking_wins     ?? 0;
+        $rankingLosses   = $stats?->ranking_losses   ?? 0;
 
         $streakValue = $currentStreak > 0 ? "+{$currentStreak}" : (string) $currentStreak;
         $streakColor = $currentStreak > 0 ? 'success' : ($currentStreak < 0 ? 'danger' : 'gray');
+
+        $rankingWinRate = $rankingMatches > 0
+            ? number_format(($rankingWins / $rankingMatches) * 100, 1) . '%'
+            : '—';
 
         return [
             Stat::make('Partidas', (string) $totalMatches)
@@ -52,6 +59,11 @@ class PlayerStatsWidget extends BaseWidget
                 ->description('Pontuação ELO média')
                 ->icon('heroicon-o-star')
                 ->color('info'),
+
+            Stat::make('Partidas Ranking', (string) $rankingMatches)
+                ->description("{$rankingWins}V / {$rankingLosses}D — Taxa: {$rankingWinRate}")
+                ->icon('heroicon-o-trophy')
+                ->color('warning'),
         ];
     }
 }

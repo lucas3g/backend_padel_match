@@ -33,12 +33,14 @@ class MatchHistoryWidget extends BaseWidget
                         'competitive' => 'Competitivo',
                         'training'    => 'Treino',
                         'casual'      => 'Casual',
+                        'ranking'     => 'Ranking',
                         default       => $state ?? '—',
                     })
                     ->colors([
-                        'danger' => 'competitive',
-                        'info'   => 'training',
-                        'gray'   => 'casual',
+                        'danger'  => 'competitive',
+                        'info'    => 'training',
+                        'gray'    => 'casual',
+                        'warning' => 'ranking',
                     ]),
 
                 Tables\Columns\TextColumn::make('club.name')
@@ -79,6 +81,35 @@ class MatchHistoryWidget extends BaseWidget
                             ? "{$record->team1_score} x {$record->team2_score}"
                             : '—'
                     ),
+
+                Tables\Columns\TextColumn::make('elo_delta')
+                    ->label('ELO')
+                    ->getStateUsing(function (Game $record): string {
+                        $player = auth()->user()?->player;
+
+                        $gameType = $record->game_type instanceof \App\Enums\GameType
+                            ? $record->game_type->value
+                            : $record->game_type;
+
+                        if ($gameType !== 'ranking') {
+                            return '—';
+                        }
+
+                        $pivot = $record->players
+                            ->firstWhere('id', $player?->id)
+                            ?->pivot;
+
+                        if (! $pivot || $pivot->elo_delta === null) {
+                            return '—';
+                        }
+
+                        $delta = (int) $pivot->elo_delta;
+                        return $delta >= 0 ? "+{$delta}" : (string) $delta;
+                    })
+                    ->color(function (string $state): string {
+                        if ($state === '—') return 'gray';
+                        return str_starts_with($state, '+') ? 'success' : 'danger';
+                    }),
 
                 Tables\Columns\TextColumn::make('parceiros')
                     ->label('Parceiros')
@@ -157,7 +188,7 @@ class MatchHistoryWidget extends BaseWidget
                      ->where('game_players.player_id', '=', $player?->id);
             })
             ->with([
-                'players' => fn ($q) => $q->withPivot('team')
+                'players' => fn ($q) => $q->withPivot('team', 'elo_delta', 'elo_after')
                     ->select('players.id', 'players.full_name', 'players.level', 'players.side'),
                 'club:id,name',
                 'court:id,name',

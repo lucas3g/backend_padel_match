@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Games\FinalizeRankingGameAction;
+use App\Enums\GameType;
 use App\Events\GameFinalized;
+use App\Jobs\UpdateRankingJob;
 use App\Models\Game;
 use App\Models\GameSet;
 use App\Models\PlayerStat;
@@ -23,11 +26,13 @@ class GameFinalizationController extends Controller
      *     path="/api/game/{game}/finalize",
      *     tags={"Finalização de Partida"},
      *     summary="Finaliza uma partida",
-     *     description="Marca a partida como concluída. Permite três modos de uso:
-     *     1) Apenas finalizar (body vazio);
+     *     description="Marca a partida como concluída. Para partidas do tipo 'ranking', winner_team e sets são obrigatórios.
+     *     Modos de uso:
+     *     1) Apenas finalizar (body vazio) — para partidas casuais/treino;
      *     2) Informar vencedor e/ou times;
      *     3) Registrar placar por sets (múltiplos sets possíveis).
-     *     Somente o dono da partida pode finalizar. Atualiza estatísticas dos jogadores quando times e vencedor são informados.",
+     *     Somente o dono da partida pode finalizar. Atualiza estatísticas dos jogadores quando times e vencedor são informados.
+     *     Partidas de ranking disparam atualização do ELO assíncrona.",
      *     security={{"bearerAuth":{}}},
      *
      *     @OA\Parameter(
@@ -42,12 +47,12 @@ class GameFinalizationController extends Controller
      *         required=false,
      *         @OA\JsonContent(
      *             @OA\Property(property="winner_team", type="integer", enum={1,2}, nullable=true, example=1,
-     *                 description="Time vencedor (1 ou 2). Se omitido com sets, será calculado automaticamente."),
+     *                 description="Time vencedor (1 ou 2). Obrigatório para partidas de ranking. Se omitido com sets, será calculado automaticamente."),
      *             @OA\Property(
      *                 property="sets",
      *                 type="array",
      *                 nullable=true,
-     *                 description="Placar por sets. Cada set é um objeto com team1_score e team2_score.",
+     *                 description="Placar por sets. Obrigatório para partidas de ranking.",
      *                 @OA\Items(
      *                     @OA\Property(property="team1_score", type="integer", example=6),
      *                     @OA\Property(property="team2_score", type="integer", example=3)
@@ -69,11 +74,14 @@ class GameFinalizationController extends Controller
      *         description="Partida finalizada com sucesso",
      *         @OA\JsonContent(
      *             @OA\Property(property="message", type="string", example="Partida finalizada com sucesso"),
+     *             @OA\Property(property="ranking_update_queued", type="boolean", example=true,
+     *                 description="true quando o ELO do ranking está sendo calculado em background"),
      *             @OA\Property(
      *                 property="game",
      *                 type="object",
      *                 @OA\Property(property="id", type="integer", example=1),
      *                 @OA\Property(property="status", type="string", example="completed"),
+     *                 @OA\Property(property="game_type", type="string", example="ranking"),
      *                 @OA\Property(property="winner_team", type="integer", nullable=true, example=1),
      *                 @OA\Property(property="team1_score", type="integer", nullable=true, example=2),
      *                 @OA\Property(property="team2_score", type="integer", nullable=true, example=0),
@@ -91,23 +99,19 @@ class GameFinalizationController extends Controller
      *     ),
      *     @OA\Response(response=400, description="Usuário não possui player vinculado"),
      *     @OA\Response(response=403, description="Apenas o dono da partida pode finalizá-la"),
-     *     @OA\Response(response=422, description="Partida já finalizada ou parâmetros inválidos"),
+     *     @OA\Response(response=422, description="Partida já finalizada, parâmetros inválidos ou dados obrigatórios do ranking ausentes"),
      *     @OA\Response(response=404, description="Partida não encontrada")
      * )
      */
     public function finalize(Request $request, Game $game): JsonResponse
     {
         $currentPlayer = $request->user()->player;
-        if (!$currentPlayer) {
+        if (! $currentPlayer) {
             return response()->json(['message' => 'Usuário não possui player vinculado'], 400);
         }
 
         if ($game->owner_player_id !== $currentPlayer->id) {
             return response()->json(['message' => 'Apenas o dono da partida pode finalizá-la'], 403);
-        }
-
-        if (in_array($game->status, ['completed', 'cancelled'])) {
-            return response()->json(['message' => 'Partida já foi encerrada'], 422);
         }
 
         $request->validate([
@@ -122,17 +126,33 @@ class GameFinalizationController extends Controller
             'teams.team2.*'       => 'integer|exists:players,id',
         ]);
 
-        $setsData    = $request->input('sets');
-        $teamsData   = $request->input('teams');
-        $winnerTeam  = $request->input('winner_team');
+        // Partidas de ranking exigem vencedor e sets
+        $isRanking = $game->game_type instanceof GameType
+            ? $game->game_type->affectsRanking()
+            : $game->game_type === 'ranking';
+
+        if ($isRanking) {
+            app(FinalizeRankingGameAction::class)->validate($game, $request->all());
+        }
+
+        $setsData   = $request->input('sets');
+        $teamsData  = $request->input('teams');
+        $winnerTeam = $request->input('winner_team');
 
         DB::transaction(function () use ($game, $setsData, $teamsData, &$winnerTeam) {
+            // Adquirir lock para evitar finalização duplicada concorrente
+            $freshGame = Game::lockForUpdate()->findOrFail($game->id);
+
+            if (in_array($freshGame->status, ['completed', 'cancelled', 'canceled'])) {
+                abort(422, 'Partida já foi encerrada');
+            }
+
             $team1SetsWon = 0;
             $team2SetsWon = 0;
 
             // Registrar sets e calcular placar agregado
-            if (!empty($setsData)) {
-                $game->sets()->delete(); // remove sets anteriores se re-finalizando
+            if (! empty($setsData)) {
+                $game->sets()->delete();
 
                 foreach ($setsData as $index => $set) {
                     GameSet::create([
@@ -156,7 +176,7 @@ class GameFinalizationController extends Controller
             }
 
             // Atribuir jogadores aos times e atualizar game_players
-            if (!empty($teamsData)) {
+            if (! empty($teamsData)) {
                 $gamePlayerIds = $game->players()->pluck('players.id')->toArray();
 
                 foreach ([1, 2] as $teamNumber) {
@@ -168,7 +188,7 @@ class GameFinalizationController extends Controller
                     }
                 }
 
-                // Atualizar estatísticas dos jogadores se temos vencedor
+                // Atualizar estatísticas gerais dos jogadores se temos vencedor
                 if ($winnerTeam !== null) {
                     $this->updatePlayerStats($teamsData, $winnerTeam);
                 }
@@ -178,20 +198,31 @@ class GameFinalizationController extends Controller
             $game->update([
                 'status'      => 'completed',
                 'winner_team' => $winnerTeam,
-                'team1_score' => !empty($setsData) ? $team1SetsWon : $game->team1_score,
-                'team2_score' => !empty($setsData) ? $team2SetsWon : $game->team2_score,
+                'team1_score' => ! empty($setsData) ? $team1SetsWon : $game->team1_score,
+                'team2_score' => ! empty($setsData) ? $team2SetsWon : $game->team2_score,
             ]);
         });
 
         event(new GameFinalized($game));
 
+        // Despachar job de ranking assíncrono para partidas do tipo ranking
+        $rankingUpdateQueued = false;
+        if ($isRanking) {
+            UpdateRankingJob::dispatch($game->id);
+            $rankingUpdateQueued = true;
+        }
+
         $game->load('sets');
 
         return response()->json([
-            'message' => 'Partida finalizada com sucesso',
-            'game'    => [
+            'message'               => 'Partida finalizada com sucesso',
+            'ranking_update_queued' => $rankingUpdateQueued,
+            'game'                  => [
                 'id'          => $game->id,
                 'status'      => $game->status,
+                'game_type'   => $game->game_type instanceof GameType
+                    ? $game->game_type->value
+                    : $game->game_type,
                 'winner_team' => $game->winner_team,
                 'team1_score' => $game->team1_score,
                 'team2_score' => $game->team2_score,
@@ -242,23 +273,30 @@ class GameFinalizationController extends Controller
         );
     }
 
+    /**
+     * Atualiza estatísticas gerais (total_matches, wins, losses, streak, win_rate)
+     * para partidas de qualquer tipo. Para ranking, o ELO é tratado pelo UpdateRankingJob.
+     */
     private function updatePlayerStats(array $teamsData, int $winnerTeam): void
     {
         foreach ([1, 2] as $teamNumber) {
-            $teamKey = 'team' . $teamNumber;
+            $teamKey  = 'team' . $teamNumber;
             $isWinner = $teamNumber === $winnerTeam;
 
             foreach ($teamsData[$teamKey] ?? [] as $playerId) {
                 $stat = PlayerStat::firstOrCreate(
                     ['player_id' => $playerId],
                     [
-                        'total_matches'  => 0,
-                        'wins'           => 0,
-                        'losses'         => 0,
-                        'win_rate'       => 0,
-                        'current_streak' => 0,
-                        'longest_streak' => 0,
-                        'average_elo'    => 1000,
+                        'total_matches'   => 0,
+                        'wins'            => 0,
+                        'losses'          => 0,
+                        'win_rate'        => 0,
+                        'current_streak'  => 0,
+                        'longest_streak'  => 0,
+                        'average_elo'     => 1000,
+                        'ranking_matches' => 0,
+                        'ranking_wins'    => 0,
+                        'ranking_losses'  => 0,
                     ]
                 );
 
@@ -266,14 +304,16 @@ class GameFinalizationController extends Controller
 
                 if ($isWinner) {
                     $stat->wins++;
-                    $stat->current_streak = max(0, $stat->current_streak) + 1;
+                    // Streak correto: positivo = sequência de vitórias
+                    $stat->current_streak = ($stat->current_streak < 0 ? 0 : $stat->current_streak) + 1;
+
+                    if ($stat->current_streak > $stat->longest_streak) {
+                        $stat->longest_streak = $stat->current_streak;
+                    }
                 } else {
                     $stat->losses++;
-                    $stat->current_streak = min(0, $stat->current_streak) - 1;
-                }
-
-                if ($stat->current_streak > $stat->longest_streak) {
-                    $stat->longest_streak = $stat->current_streak;
+                    // Streak correto: negativo = sequência de derrotas (correção do bug original)
+                    $stat->current_streak = ($stat->current_streak > 0 ? 0 : $stat->current_streak) - 1;
                 }
 
                 $stat->win_rate = round(($stat->wins / $stat->total_matches) * 100, 2);

@@ -58,4 +58,14 @@ class Club extends Model
     {
         return $this->hasMany(User::class);
     }
+
+    public function rankingStats()
+    {
+        return $this->hasOne(ClubRanking::class);
+    }
+
+    public function clubPlayerRankings()
+    {
+        return $this->hasMany(ClubPlayerRanking::class);
+    }
 }

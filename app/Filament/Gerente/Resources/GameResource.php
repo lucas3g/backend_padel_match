@@ -69,6 +69,21 @@ class GameResource extends Resource
                         'canceled'    => 'Cancelada',
                         default       => $state,
                     }),
+                Tables\Columns\BadgeColumn::make('game_type')
+                    ->label('Modalidade')
+                    ->colors([
+                        'gray'    => 'casual',
+                        'info'    => 'training',
+                        'danger'  => 'competitive',
+                        'warning' => 'ranking',
+                    ])
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'casual'      => 'Casual',
+                        'competitive' => 'Competitivo',
+                        'training'    => 'Treino',
+                        'ranking'     => 'Ranking',
+                        default       => $state ?? '—',
+                    }),
                 Tables\Columns\TextColumn::make('data_time')
                     ->label('Data/Hora')
                     ->dateTime('d/m/Y H:i')

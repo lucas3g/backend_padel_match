@@ -2,6 +2,7 @@
 
 namespace App\Filament\Gerente\Pages;
 
+use App\Filament\Gerente\Widgets\ClubRankingWidget;
 use App\Filament\Gerente\Widgets\ClubStatsWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
 
@@ -21,6 +22,7 @@ class Dashboard extends BaseDashboard
     {
         return [
             ClubStatsWidget::class,
+            ClubRankingWidget::class,
         ];
     }
 

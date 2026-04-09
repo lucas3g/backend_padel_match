@@ -245,14 +245,22 @@ class PlayerSuggestionController extends Controller
             ->groupBy('player_id')
             ->map(fn ($rows) => $rows->pluck('club_id')->toArray());
 
-        // 6. Pontuar e ordenar
+        // 6. ELO de todos os candidatos para pontuação de proximidade (uma única query)
+        $candidateElos = DB::table('players')
+            ->whereIn('id', $candidateIds)
+            ->pluck('ranking_points', 'id');
+
+        $myElo = $currentPlayer->ranking_points ?? 1000;
+
+        // 7. Pontuar e ordenar
         $currentMunicipio = $currentPlayer->municipio_ibge;
+        $forRanking       = request()->boolean('for_ranking', false);
 
         return $candidates
             ->map(function (Player $p) use (
                 $favoriteIds, $gameTogetherCounts, $clubId,
                 $friendIds, $currentMunicipio, $favoriteClubIds,
-                $candidateFavoriteClubs
+                $candidateFavoriteClubs, $candidateElos, $myElo, $forRanking
             ) {
                 $isFavorite    = in_array($p->id, $favoriteIds);
                 $gamesCount    = $gameTogetherCounts[$p->id] ?? 0;
@@ -267,11 +275,25 @@ class PlayerSuggestionController extends Controller
                     $clubMatch = true;
                 }
 
+                // Pontuação por proximidade ELO (nivelamento para partidas de ranking)
+                $eloDiff = abs(($candidateElos[$p->id] ?? 1000) - $myElo);
+                $eloProximityScore = match (true) {
+                    $eloDiff <= 100 => 15,
+                    $eloDiff <= 200 => 10,
+                    $eloDiff <= 300 => 5,
+                    default         => 0,
+                };
+                // Para partidas de ranking, dobrar o peso da proximidade ELO
+                if ($forRanking) {
+                    $eloProximityScore *= 2;
+                }
+
                 $score = ($isFavorite ? 30 : 0)
                        + (min($gamesCount, 5) * 5)
                        + ($clubMatch ? 20 : 0)
                        + ($isFriend ? 10 : 0)
-                       + ($sameCity ? 5 : 0);
+                       + ($sameCity ? 5 : 0)
+                       + $eloProximityScore;
 
                 return [
                     'id'                => $p->id,
@@ -279,12 +301,14 @@ class PlayerSuggestionController extends Controller
                     'level'             => $p->level,
                     'side'              => $p->side,
                     'profile_image_url' => $p->profile_image_url,
+                    'ranking_points'    => (int) ($candidateElos[$p->id] ?? 1000),
                     'score'             => $score,
                     'is_favorite'       => $isFavorite,
                     'games_together'    => $gamesCount,
                     'club_match'        => $clubMatch,
                     'is_friend'         => $isFriend,
                     'same_city'         => $sameCity,
+                    'elo_proximity'     => $eloProximityScore > 0,
                 ];
             })
             ->sortByDesc('score')

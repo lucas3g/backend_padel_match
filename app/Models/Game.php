@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use App\Enums\GameType;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Game extends Model
 {
     use HasFactory;
+
+    protected $casts = [
+        'game_type' => GameType::class,
+    ];
 
     protected $fillable = [
         'title',
@@ -48,7 +53,7 @@ class Game extends Model
     public function players()
     {
         return $this->belongsToMany(Player::class, 'game_players')
-                    ->withPivot('joined_at', 'team')
+                    ->withPivot('joined_at', 'team', 'elo_before', 'elo_after', 'elo_delta')
                     ->withTimestamps();
     }
 
