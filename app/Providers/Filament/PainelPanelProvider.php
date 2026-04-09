@@ -28,9 +28,38 @@ class PainelPanelProvider extends PanelProvider
             ->path('painel')
             ->login(\App\Filament\Painel\Pages\Login::class)
             ->brandName('PadelMatch - Jogador')
+            ->brandLogo(asset('images/logo.svg'))
+            ->brandLogoHeight('2rem')
             ->colors([
-                'primary' => Color::Orange,
+                'primary' => Color::hex('#F07B30'),
             ])
+            ->darkMode(false)
+            ->renderHook(
+                PanelsRenderHook::STYLES_AFTER,
+                fn (): HtmlString => new HtmlString('
+                    <style>
+                        .fi-panel-painel .fi-simple-layout {
+                            background-color: #1B6B7A;
+                        }
+                        .fi-panel-painel .fi-simple-main {
+                            box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+                        }
+                        .fi-panel-painel .fi-sidebar-header {
+                            background-color: #1B6B7A !important;
+                            border-bottom: 1px solid rgba(255,255,255,0.15);
+                        }
+                        .fi-panel-painel .fi-sidebar {
+                            background-color: #154f5c !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-nav {
+                            background-color: #154f5c !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-header .fi-logo img {
+                            filter: brightness(0) invert(1);
+                        }
+                    </style>
+                '),
+            )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn (): HtmlString => new HtmlString(

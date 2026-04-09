@@ -28,9 +28,38 @@ class GerentePanelProvider extends PanelProvider
             ->path('gerente')
             ->login(\App\Filament\Gerente\Pages\Login::class)
             ->brandName('PadelMatch - Gerente')
+            ->brandLogo(asset('images/logo.svg'))
+            ->brandLogoHeight('2rem')
             ->colors([
-                'primary' => Color::Blue,
+                'primary' => Color::hex('#F07B30'),
             ])
+            ->darkMode(false)
+            ->renderHook(
+                PanelsRenderHook::STYLES_AFTER,
+                fn (): HtmlString => new HtmlString('
+                    <style>
+                        .fi-panel-gerente .fi-simple-layout {
+                            background-color: #1B6B7A;
+                        }
+                        .fi-panel-gerente .fi-simple-main {
+                            box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+                        }
+                        .fi-panel-gerente .fi-sidebar-header {
+                            background-color: #1B6B7A !important;
+                            border-bottom: 1px solid rgba(255,255,255,0.15);
+                        }
+                        .fi-panel-gerente .fi-sidebar {
+                            background-color: #154f5c !important;
+                        }
+                        .fi-panel-gerente .fi-sidebar-nav {
+                            background-color: #154f5c !important;
+                        }
+                        .fi-panel-gerente .fi-sidebar-header .fi-logo img {
+                            filter: brightness(0) invert(1);
+                        }
+                    </style>
+                '),
+            )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
                 fn (): HtmlString => new HtmlString(

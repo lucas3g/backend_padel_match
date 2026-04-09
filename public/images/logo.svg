@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 60" fill="none">
+  <!-- Raquete esquerda -->
+  <ellipse cx="40" cy="22" rx="18" ry="21" fill="#F07B30" transform="rotate(-25 40 22)"/>
+  <ellipse cx="40" cy="22" rx="11" ry="14" fill="#F07B30" opacity="0.4" transform="rotate(-25 40 22)"/>
+  <line x1="32" y1="39" x2="22" y2="54" stroke="#F07B30" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- Raquete direita -->
+  <ellipse cx="100" cy="22" rx="18" ry="21" fill="#F07B30" transform="rotate(25 100 22)"/>
+  <ellipse cx="100" cy="22" rx="11" ry="14" fill="#F07B30" opacity="0.4" transform="rotate(25 100 22)"/>
+  <line x1="108" y1="39" x2="118" y2="54" stroke="#F07B30" stroke-width="5.5" stroke-linecap="round"/>
+  <!-- Bola -->
+  <circle cx="70" cy="18" r="8" fill="#F07B30"/>
+  <path d="M63 15 Q70 22 77 15" stroke="white" stroke-width="1.5" fill="none" opacity="0.6"/>
+</svg>
