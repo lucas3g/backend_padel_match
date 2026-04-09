@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Events\PlayerLeftGame;
 use App\Jobs\SendPushNotification;
 use App\Models\Game;
+use App\Models\Player;
 use Illuminate\Contracts\Queue\ShouldQueue;
 
 class NotifyPlayersOnGameLeave implements ShouldQueue
@@ -42,5 +43,16 @@ class NotifyPlayersOnGameLeave implements ShouldQueue
             "{$playerName} saiu da partida.",
             ['type' => 'player_left', 'game_id' => (string) $game->id]
         ));
+
+        // Notificar o jogador removido (já foi detachado — não está em $game->players)
+        $removedPlayer = Player::with('user')->find($leavingPlayerId);
+        if ($removedPlayer?->user) {
+            SendPushNotification::dispatch(
+                $removedPlayer->user,
+                'Você foi removido da partida',
+                'O organizador removeu você da partida.',
+                ['type' => 'player_removed_from_game', 'game_id' => (string) $game->id]
+            );
+        }
     }
 }
