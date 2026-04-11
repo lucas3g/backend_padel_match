@@ -14,4 +14,14 @@ class EditPlayerProfile extends EditRecord
     {
         return [];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (($data['disponibilidade'] ?? 'disponivel') === 'disponivel') {
+            $data['motivo_indisponibilidade'] = null;
+            $data['disponivel_ate'] = null;
+        }
+
+        return $data;
+    }
 }

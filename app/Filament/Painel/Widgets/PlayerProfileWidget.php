@@ -22,16 +22,13 @@ class PlayerProfileWidget extends BaseWidget
         $player->load('municipio');
 
         $levelLabels = [
-            1  => 'Iniciante (1)',
-            2  => 'Iniciante (2)',
-            3  => 'Básico (3)',
-            4  => 'Básico (4)',
-            5  => 'Intermediário (5)',
-            6  => 'Intermediário (6)',
-            7  => 'Avançado (7)',
-            8  => 'Avançado (8)',
-            9  => 'Semi-Pro (9)',
-            10 => 'Profissional (10)',
+            1 => '1 - Pro',
+            2 => '2 - Avançado+',
+            3 => '3 - Avançado',
+            4 => '4 - Intermediário+',
+            5 => '5 - Intermediário',
+            6 => '6 - Iniciante+',
+            7 => '7 - Iniciante',
         ];
 
         $sideLabels = [
