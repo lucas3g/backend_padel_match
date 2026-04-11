@@ -130,7 +130,6 @@ class Player extends Model
     public function favoriteClubs()
     {
         return $this->belongsToMany(Club::class, 'player_favorite_clubs')
-            ->withTimestamps()
             ->select('clubs.id', 'clubs.name', 'clubs.address', 'clubs.neighborhood', 'clubs.city', 'clubs.state', 'clubs.open_time', 'clubs.close_time');
     }
 
