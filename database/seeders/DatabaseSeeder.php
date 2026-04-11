@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
             MunicipioSeeder::class,
             RoleAndPermissionSeeder::class,
             AdminUserSeeder::class,
+            ClubSeeder::class,
+            CourtSeeder::class,
         ]);
     }
 }
