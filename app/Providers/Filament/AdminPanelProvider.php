@@ -59,21 +59,69 @@ class AdminPanelProvider extends PanelProvider
                         .fi-panel-admin .fi-sidebar-header .fi-logo img {
                             filter: brightness(0) invert(1);
                         }
+                        .pm-login-divider {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.75rem;
+                            margin: 1.5rem 0 1rem;
+                        }
+                        .pm-login-divider::before,
+                        .pm-login-divider::after {
+                            content: "";
+                            flex: 1;
+                            height: 1px;
+                            background: #e5e7eb;
+                        }
+                        .pm-login-divider span {
+                            font-size: 0.7rem;
+                            color: #9ca3af;
+                            text-transform: uppercase;
+                            letter-spacing: 0.06em;
+                            white-space: nowrap;
+                        }
+                        .pm-login-access-links {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.5rem;
+                        }
+                        .pm-login-access-btn {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            gap: 0.5rem;
+                            padding: 0.5rem 1rem;
+                            border-radius: 0.5rem;
+                            border: 1.5px solid #e5e7eb;
+                            font-size: 0.875rem;
+                            font-weight: 500;
+                            color: #374151;
+                            text-decoration: none;
+                            transition: border-color 0.2s, color 0.2s, background 0.2s;
+                            background: #ffffff;
+                        }
+                        .pm-login-access-btn:hover {
+                            border-color: #F07B30;
+                            color: #F07B30;
+                            background: #fff8f4;
+                        }
                     </style>
                 '),
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): HtmlString => new HtmlString(
-                    '<div class="text-center mt-2 flex flex-col gap-1">
-                        <a href="/gerente/login" class="text-sm font-medium text-primary-600 hover:text-primary-500">
-                            Acessar como Gerente
+                fn (): HtmlString => new HtmlString('
+                    <div class="pm-login-divider"><span>ou acesse como</span></div>
+                    <div class="pm-login-access-links">
+                        <a href="/gerente/login" class="pm-login-access-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/></svg>
+                            Gerente de Clube
                         </a>
-                        <a href="/painel/login" class="text-sm font-medium text-primary-600 hover:text-primary-500">
-                            Acessar como Jogador
+                        <a href="/painel/login" class="pm-login-access-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                            Jogador
                         </a>
-                    </div>'
-                ),
+                    </div>
+                '),
             )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
