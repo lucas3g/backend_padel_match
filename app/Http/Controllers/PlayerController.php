@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClubPlayerRanking;
 use App\Models\Player;
 use App\Rules\ValidCodigoIbge;
 use App\Rules\ValidUf;
@@ -334,6 +335,24 @@ class PlayerController extends Controller
             return $meuTime === $game->winner_team ? 'vitoria' : 'derrota';
         })->values();
 
+        $clubesFavoritos = $player->favoriteClubs()->get();
+
+        $rankings = ClubPlayerRanking::where('player_id', $player->id)
+            ->whereIn('club_id', $clubesFavoritos->pluck('id'))
+            ->get()
+            ->keyBy('club_id');
+
+        $rankingClubesFavoritos = $clubesFavoritos->map(fn ($clube) => [
+            'club_id'                 => $clube->id,
+            'club_name'               => $clube->name,
+            'club_position'           => $rankings[$clube->id]?->club_position,
+            'club_elo'                => $rankings[$clube->id]?->club_elo,
+            'ranking_matches_at_club' => $rankings[$clube->id]?->ranking_matches_at_club,
+            'ranking_wins_at_club'    => $rankings[$clube->id]?->ranking_wins_at_club,
+            'ranking_losses_at_club'  => $rankings[$clube->id]?->ranking_losses_at_club,
+            'win_rate_at_club'        => $rankings[$clube->id]?->win_rate_at_club,
+        ])->values();
+
         return response()->json([
             'id'                 => $player->id,
             'full_name'          => $player->full_name,
@@ -354,6 +373,7 @@ class PlayerController extends Controller
             'motivo_indisponibilidade' => $player->motivo_indisponibilidade,
             'disponivel_ate'           => $player->disponivel_ate?->toDateString(),
             'esta_disponivel'          => $player->esta_disponivel,
+            'ranking_clubes_favoritos' => $rankingClubesFavoritos,
         ]);
     }
 
