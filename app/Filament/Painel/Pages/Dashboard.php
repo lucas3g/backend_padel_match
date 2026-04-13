@@ -2,6 +2,7 @@
 
 namespace App\Filament\Painel\Pages;
 
+use App\Filament\Painel\Widgets\ClubRankingWidget;
 use App\Filament\Painel\Widgets\MatchHistoryWidget;
 use App\Filament\Painel\Widgets\PlayerProfileWidget;
 use App\Filament\Painel\Widgets\PlayerStatsWidget;
@@ -27,6 +28,7 @@ class Dashboard extends BaseDashboard
             PlayerStatsWidget::class,
             RecentResultsWidget::class,
             MatchHistoryWidget::class,
+            ClubRankingWidget::class,
         ];
     }
 
