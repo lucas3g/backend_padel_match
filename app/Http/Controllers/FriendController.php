@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\FriendRequestSent;
 use App\Models\Friend;
 use App\Models\Player;
 use App\Models\PlayerFavorite;
@@ -238,6 +239,7 @@ class FriendController extends Controller
                     'friend_id' => $playerId,
                     'status' => 'pending',
                 ]);
+                FriendRequestSent::dispatch($existingFriendship);
                 return response()->json([
                     'message' => 'Solicitação de amizade reenviada',
                     'data' => $existingFriendship
@@ -250,6 +252,8 @@ class FriendController extends Controller
             'friend_id' => $playerId,
             'status' => 'pending',
         ]);
+
+        FriendRequestSent::dispatch($friendship);
 
         return response()->json([
             'message' => 'Solicitação de amizade enviada',
