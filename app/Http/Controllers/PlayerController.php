@@ -73,7 +73,10 @@ class PlayerController extends Controller
      */
     public function index(Request $request)
     {
+        $authPlayer = $request->user()->player;
+
         $players = Player::query()
+            ->when($authPlayer, fn ($q) => $q->where('id', '!=', $authPlayer->id))
             ->when($request->query('full_name'), fn ($q, $name) => $q->where('full_name', 'like', "%{$name}%"))
             ->when($request->query('level'), fn ($q, $level) => $q->where('level', $level))
             ->when($request->query('side'), function ($q, $side) {
@@ -88,7 +91,14 @@ class PlayerController extends Controller
             ->with('municipio')
             ->get();
 
-        return response()->json($players);
+        $favoriteIds = $authPlayer
+            ? $authPlayer->favorites()->pluck('players.id')->toArray()
+            : [];
+
+        return response()->json($players->map(function ($p) use ($favoriteIds) {
+            $p->is_favorite = in_array($p->id, $favoriteIds);
+            return $p;
+        }));
     }
 
     /**
