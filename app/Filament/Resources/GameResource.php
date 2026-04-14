@@ -94,10 +94,10 @@ class GameResource extends Resource
                         'primary' => 'public',
                         'warning' => 'private',
                     ])
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->formatStateUsing(fn ($state): string => match ($state instanceof \BackedEnum ? $state->value : $state) {
                         'public'  => 'Pública',
                         'private' => 'Privada',
-                        default   => $state,
+                        default   => $state instanceof \BackedEnum ? $state->value : (string) $state,
                     }),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Status')
@@ -108,13 +108,13 @@ class GameResource extends Resource
                         'gray'    => 'completed',
                         'danger'  => 'canceled',
                     ])
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                    ->formatStateUsing(fn ($state): string => match ($state instanceof \BackedEnum ? $state->value : $state) {
                         'open'        => 'Aberta',
                         'full'        => 'Cheia',
                         'in_progress' => 'Em andamento',
                         'completed'   => 'Concluída',
                         'canceled'    => 'Cancelada',
-                        default       => $state,
+                        default       => $state instanceof \BackedEnum ? $state->value : (string) $state,
                     }),
                 Tables\Columns\BadgeColumn::make('game_type')
                     ->label('Modalidade')
@@ -124,12 +124,12 @@ class GameResource extends Resource
                         'danger'  => 'competitive',
                         'warning' => 'ranking',
                     ])
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                    ->formatStateUsing(fn ($state): string => match ($state instanceof \BackedEnum ? $state->value : $state) {
                         'casual'      => 'Casual',
                         'competitive' => 'Competitivo',
                         'training'    => 'Treino',
                         'ranking'     => 'Ranking',
-                        default       => $state ?? '—',
+                        default       => $state instanceof \BackedEnum ? $state->value : ($state ?? '—'),
                     }),
                 Tables\Columns\TextColumn::make('owner.full_name')
                     ->label('Dono')
