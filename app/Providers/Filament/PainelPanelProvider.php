@@ -61,7 +61,7 @@ class PainelPanelProvider extends PanelProvider
                             display: flex;
                             align-items: center;
                             gap: 0.75rem;
-                            margin: 1.5rem 0 1rem;
+                            margin: 0.875rem 0 0.5rem;
                         }
                         .pm-login-divider::before,
                         .pm-login-divider::after {
@@ -80,14 +80,14 @@ class PainelPanelProvider extends PanelProvider
                         .pm-login-access-links {
                             display: flex;
                             flex-direction: column;
-                            gap: 0.5rem;
+                            gap: 0.375rem;
                         }
                         .pm-login-access-btn {
                             display: flex;
                             align-items: center;
                             justify-content: center;
                             gap: 0.5rem;
-                            padding: 0.5rem 1rem;
+                            padding: 0.375rem 1rem;
                             border-radius: 0.5rem;
                             border: 1.5px solid #e5e7eb;
                             font-size: 0.875rem;
@@ -102,7 +102,74 @@ class PainelPanelProvider extends PanelProvider
                             color: #F07B30;
                             background: #fff8f4;
                         }
+                        .pm-login-role-banner {
+                            display: flex;
+                            align-items: center;
+                            gap: 0.625rem;
+                            padding: 0.6rem 0.875rem;
+                            border-left: 4px solid #F07B30;
+                            background: #fff8f4;
+                            border-radius: 0.5rem;
+                            margin-bottom: 0.875rem;
+                        }
+                        .pm-login-role-banner svg {
+                            flex-shrink: 0;
+                            color: #F07B30;
+                        }
+                        .pm-login-role-title {
+                            font-size: 1rem;
+                            font-weight: 700;
+                            color: #111827;
+                        }
+                        .pm-login-role-sub {
+                            font-size: 0.8rem;
+                            color: #6b7280;
+                            margin-top: 0.1rem;
+                        }
+                        /* ── Sidebar nav items ── */
+                        .fi-panel-painel .fi-sidebar-item-label {
+                            color: rgba(255,255,255,0.75) !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-item-icon {
+                            color: rgba(255,255,255,0.6) !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-item-button:hover {
+                            background-color: rgba(255,255,255,0.08) !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-item-button:hover .fi-sidebar-item-label {
+                            color: rgba(255,255,255,1) !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-item-button:hover .fi-sidebar-item-icon {
+                            color: rgba(255,255,255,0.95) !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-item.fi-active .fi-sidebar-item-button {
+                            background-color: rgba(240,123,48,0.18) !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-item.fi-active .fi-sidebar-item-label {
+                            color: #F07B30 !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-item.fi-active .fi-sidebar-item-icon {
+                            color: #F07B30 !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-group-label {
+                            color: rgba(255,255,255,0.45) !important;
+                        }
+                        .fi-panel-painel .fi-sidebar-group-icon {
+                            color: rgba(255,255,255,0.45) !important;
+                        }
                     </style>
+                '),
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+                fn (): HtmlString => new HtmlString('
+                    <div class="pm-login-role-banner">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                        <div>
+                            <div class="pm-login-role-title">Área do Jogador</div>
+                            <div class="pm-login-role-sub">Acesse seu painel de partidas e ranking</div>
+                        </div>
+                    </div>
                 '),
             )
             ->renderHook(

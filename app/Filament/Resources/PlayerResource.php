@@ -34,17 +34,21 @@ class PlayerResource extends Resource
                 Forms\Components\Select::make('level')
                     ->label('Nível')
                     ->options([
-                        'iniciante'    => 'Iniciante',
-                        'intermediario' => 'Intermediário',
-                        'avancado'     => 'Avançado',
+                        1 => '1 - Pro',
+                        2 => '2 - Avançado+',
+                        3 => '3 - Avançado',
+                        4 => '4 - Intermediário+',
+                        5 => '5 - Intermediário',
+                        6 => '6 - Iniciante+',
+                        7 => '7 - Iniciante',
                     ])
                     ->required(),
                 Forms\Components\Select::make('side')
                     ->label('Lado')
                     ->options([
-                        'direita' => 'Direita',
-                        'esquerda' => 'Esquerda',
-                        'ambos'   => 'Ambos',
+                        'left'  => 'Esquerda',
+                        'right' => 'Direita',
+                        'both'  => 'Ambos',
                     ]),
                 Forms\Components\Textarea::make('bio')
                     ->label('Bio')
@@ -92,26 +96,32 @@ class PlayerResource extends Resource
                     ->label('Nome')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\BadgeColumn::make('level')
+                Tables\Columns\TextColumn::make('level')
                     ->label('Nível')
-                    ->colors([
-                        'success' => 'iniciante',
-                        'warning' => 'intermediario',
-                        'danger'  => 'avancado',
-                    ])
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'iniciante'    => 'Iniciante',
-                        'intermediario' => 'Intermediário',
-                        'avancado'     => 'Avançado',
-                        default        => $state,
+                    ->badge()
+                    ->color(fn ($state): string => match ((int) $state) {
+                        1, 2    => 'danger',
+                        3, 4    => 'warning',
+                        5, 6    => 'success',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn ($state): string => match ((int) $state) {
+                        1 => '1 - Pro',
+                        2 => '2 - Avançado+',
+                        3 => '3 - Avançado',
+                        4 => '4 - Intermediário+',
+                        5 => '5 - Intermediário',
+                        6 => '6 - Iniciante+',
+                        7 => '7 - Iniciante',
+                        default => "Nível {$state}",
                     }),
                 Tables\Columns\TextColumn::make('side')
                     ->label('Lado')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'direita'  => 'Direita',
-                        'esquerda' => 'Esquerda',
-                        'ambos'    => 'Ambos',
-                        default    => $state ?? '-',
+                        'left'  => 'Esquerda',
+                        'right' => 'Direita',
+                        'both'  => 'Ambos',
+                        default => $state ?? '-',
                     }),
                 Tables\Columns\TextColumn::make('total_matches')
                     ->label('Partidas')
@@ -136,9 +146,13 @@ class PlayerResource extends Resource
                 Tables\Filters\SelectFilter::make('level')
                     ->label('Nível')
                     ->options([
-                        'iniciante'    => 'Iniciante',
-                        'intermediario' => 'Intermediário',
-                        'avancado'     => 'Avançado',
+                        1 => '1 - Pro',
+                        2 => '2 - Avançado+',
+                        3 => '3 - Avançado',
+                        4 => '4 - Intermediário+',
+                        5 => '5 - Intermediário',
+                        6 => '6 - Iniciante+',
+                        7 => '7 - Iniciante',
                     ]),
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Ativo'),
