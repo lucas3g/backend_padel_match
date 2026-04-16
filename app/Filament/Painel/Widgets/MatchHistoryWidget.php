@@ -29,12 +29,15 @@ class MatchHistoryWidget extends BaseWidget
 
                 Tables\Columns\BadgeColumn::make('game_type')
                     ->label('Tipo')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'competitive' => 'Competitivo',
-                        'training'    => 'Treino',
-                        'casual'      => 'Casual',
-                        'ranking'     => 'Ranking',
-                        default       => $state ?? '—',
+                    ->formatStateUsing(function ($state): string {
+                        $value = $state instanceof \App\Enums\GameType ? $state->value : $state;
+                        return match ($value) {
+                            'competitive' => 'Competitivo',
+                            'training'    => 'Treino',
+                            'casual'      => 'Casual',
+                            'ranking'     => 'Ranking',
+                            default       => $value ?? '—',
+                        };
                     })
                     ->colors([
                         'danger'  => 'competitive',
