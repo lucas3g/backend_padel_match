@@ -314,7 +314,7 @@ class GameController extends Controller
             "max_players" => 'nullable|integer|in:2,4',
             "price" => 'nullable|numeric',
             "cost_per_player" => 'nullable|numeric',
-            "game_type" => 'required|in:casual,competitive,training',
+            "game_type" => 'required|in:casual,competitive,training,ranking',
             "duration_minutes" => 'nullable|integer|min:30'
         ]);
 
@@ -794,7 +794,7 @@ class GameController extends Controller
             "status"     => 'required|in:open,full,in_progress,completed,canceled',
             "price" => 'nullable',
             "cost_per_player" => 'nullable',
-            "game_type" => 'required|in:casual,competitive,training',
+            "game_type" => 'required|in:casual,competitive,training,ranking',
             "duration_minutes" => 'nullable',
             "players" => 'nullable|array',
             "players.*.player_id" => 'required|integer|exists:players,id',
