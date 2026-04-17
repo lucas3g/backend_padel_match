@@ -9,6 +9,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\HtmlString;
 
 class GameResource extends Resource
 {
@@ -24,6 +25,7 @@ class GameResource extends Resource
         $playerId = auth()->user()?->player?->id;
 
         return parent::getEloquentQuery()
+            ->with('players')
             ->where(function (Builder $q) use ($playerId) {
                 $q->where('owner_player_id', $playerId)
                   ->orWhereHas('players', fn (Builder $sub) => $sub->where('players.id', $playerId));
@@ -78,13 +80,31 @@ class GameResource extends Resource
                     ->label('Data/Hora')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('max_players')
-                    ->label('Vagas')
-                    ->numeric(),
+                Tables\Columns\TextColumn::make('resultado')
+                    ->label('Placar')
+                    ->state(fn (Game $record): string =>
+                        !is_null($record->team1_score)
+                            ? "{$record->team1_score} × {$record->team2_score}"
+                            : '—'
+                    )
+                    ->alignCenter(),
                 Tables\Columns\TextColumn::make('owner.full_name')
                     ->label('Organizador'),
             ])
             ->defaultSort('data_time', 'desc')
+            ->actions([
+                Tables\Actions\Action::make('detalhes')
+                    ->label('Jogadores / Resultado')
+                    ->icon('heroicon-o-users')
+                    ->color('info')
+                    ->modalHeading(fn (Game $record): string => $record->title ?? 'Detalhes da Partida')
+                    ->modalContent(fn (Game $record) => view(
+                        'filament.painel.partida-detalhes',
+                        ['game' => $record->loadMissing('players')]
+                    ))
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Fechar'),
+            ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')

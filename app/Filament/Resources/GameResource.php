@@ -138,9 +138,10 @@ class GameResource extends Resource
                     ->label('Data')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('max_players')
-                    ->label('Vagas')
-                    ->numeric(),
+                Tables\Columns\TextColumn::make('club.name')
+                    ->label('Clube')
+                    ->searchable()
+                    ->default('—'),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Criado em')
                     ->dateTime('d/m/Y')

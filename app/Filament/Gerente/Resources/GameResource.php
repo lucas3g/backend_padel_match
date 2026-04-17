@@ -88,9 +88,6 @@ class GameResource extends Resource
                     ->label('Data/Hora')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('max_players')
-                    ->label('Vagas')
-                    ->numeric(),
                 Tables\Columns\TextColumn::make('owner.full_name')
                     ->label('Organizador')
                     ->searchable(),
