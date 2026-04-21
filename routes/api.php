@@ -17,24 +17,27 @@ use App\Http\Controllers\RankingController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+// ─── Público ─────────────────────────────────────────────────────────────────
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login',             [AuthController::class, 'login']);
+Route::post('/register',          [AuthController::class, 'register']);
+Route::post('/password/forgot',   [AuthController::class, 'forgotPassword']);
+Route::post('/password/reset',    [AuthController::class, 'resetPassword']);
+
+// ─── Autenticado (sem exigir e-mail verificado) ───────────────────────────────
+// Logout, verificação e reenvio devem funcionar mesmo sem e-mail confirmado.
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/logout',         [AuthController::class, 'logout']);
+    Route::post('/email/verify',   [AuthController::class, 'verifyEmail']);
+    Route::post('/email/resend',   [AuthController::class, 'resendVerification']);
+    Route::put('/user/fcm-token',  [AuthController::class, 'updateFcmToken']);
+});
+
+// ─── Autenticado + e-mail verificado ─────────────────────────────────────────
+
+Route::middleware(['auth:sanctum', 'verified.api'])->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
-    Route::put('/user/fcm-token', [AuthController::class, 'updateFcmToken']);
 
     Route::get('/user', function (Request $request) {
         return $request->user();
@@ -65,20 +68,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/court/{id?}', [CourtController::class, 'show']);
     Route::get('/club/{club}/courts', [ClubCourtController::class, 'index']);
 
-    // Rotas administrativas: apenas admin ou club_manager
     Route::middleware('role:admin|club_manager')->group(function () {
         Route::post('/club', [ClubController::class, 'store']);
         Route::put('/club/{id}', [ClubController::class, 'update']);
         Route::post('/court', [CourtController::class, 'store']);
         Route::put('/court/{id}', [CourtController::class, 'update']);
     });
-    
+
     Route::get('/game', [GameController::class, 'index']);
     Route::get('/game/available', [GameController::class, 'available']);
     Route::get('/game/invitations', [GameInvitationController::class, 'myInvitations']);
     Route::post('/game', [GameController::class, 'store']);
 
-    // Rotas específicas (multi-segmento) antes das genéricas com {id}
     Route::get('/game/{game}/teams', [GameController::class, 'teams']);
     Route::get('/game/{game}/sets', [GameFinalizationController::class, 'sets']);
     Route::get('/game/{game}/suggest-players', [PlayerSuggestionController::class, 'forGame']);
@@ -88,26 +89,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/game/{game}/players/{player}', [GameController::class, 'removePlayer']);
     Route::put('/game/{game}/players/{player}/team', [GameController::class, 'assignTeam']);
 
-    // Rotas genéricas por ID
     Route::get('/game/{id}', [GameController::class, 'show']);
     Route::put('/game/{id}', [GameController::class, 'update']);
 
-    // Convites de partidas
     Route::post('/game/invitation/{invitation}/accept', [GameInvitationController::class, 'accept']);
     Route::post('/game/invitation/{invitation}/reject', [GameInvitationController::class, 'reject']);
     Route::post('/game/{game}/invite/{player}', [GameInvitationController::class, 'invite']);
     Route::delete('/game/{game}/invite/{player}', [GameInvitationController::class, 'cancelInvite']);
 
-    // Ranking de jogadores e clubes
     Route::prefix('ranking')->group(function () {
-        Route::get('/players',                 [RankingController::class, 'players']);
-        Route::get('/players/{player}',        [RankingController::class, 'playerCard']);
-        Route::get('/clubs',                   [RankingController::class, 'clubs']);
-        Route::get('/clubs/{club}/players',    [RankingController::class, 'clubPlayers']);
-        Route::get('/clubs/{club}',            [RankingController::class, 'clubCard']);
+        Route::get('/players',              [RankingController::class, 'players']);
+        Route::get('/players/{player}',     [RankingController::class, 'playerCard']);
+        Route::get('/clubs',                [RankingController::class, 'clubs']);
+        Route::get('/clubs/{club}/players', [RankingController::class, 'clubPlayers']);
+        Route::get('/clubs/{club}',         [RankingController::class, 'clubCard']);
     });
 
-    // Amigos - rotas estáticas primeiro para evitar conflito com parâmetros dinâmicos
     Route::get('/friends', [FriendController::class, 'index']);
     Route::get('/friends/pending', [FriendController::class, 'pending']);
     Route::get('/friends/sent', [FriendController::class, 'sent']);

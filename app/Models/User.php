@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Notifications\ResetPasswordNotification;
+use App\Notifications\VerifyEmailNotification;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Panel;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
@@ -22,7 +24,7 @@ class User extends Authenticatable implements FilamentUser
         }
 
         if ($panel->getId() === 'gerente') {
-            return $this->hasRole('club_manager') && !is_null($this->club_id);
+            return $this->hasRole('club_manager') && ! is_null($this->club_id);
         }
 
         if ($panel->getId() === 'painel') {
@@ -32,11 +34,6 @@ class User extends Authenticatable implements FilamentUser
         return false;
     }
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'name',
         'email',
@@ -45,27 +42,80 @@ class User extends Authenticatable implements FilamentUser
         'club_id',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
+        'email_verification_code',
+        'password_reset_code',
         'created_at',
         'updated_at',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'email_verified_at'             => 'datetime',
+        'email_verification_expires_at' => 'datetime',
+        'password_reset_expires_at'     => 'datetime',
+        'password'                      => 'hashed',
     ];
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $this->forceFill([
+            'email_verification_code'       => hash('sha256', $code),
+            'email_verification_expires_at' => now()->addMinutes(30),
+        ])->save();
+
+        $this->notify(new VerifyEmailNotification($code));
+    }
+
+    public function hasValidVerificationCode(string $code): bool
+    {
+        if (is_null($this->email_verification_code)) {
+            return false;
+        }
+
+        if ($this->email_verification_expires_at?->isPast()) {
+            return false;
+        }
+
+        return hash_equals($this->email_verification_code, hash('sha256', $code));
+    }
+
+    public function markEmailAsVerified(): bool
+    {
+        return $this->forceFill([
+            'email_verified_at'             => $this->freshTimestamp(),
+            'email_verification_code'       => null,
+            'email_verification_expires_at' => null,
+        ])->save();
+    }
+
+    public function sendPasswordResetCode(): void
+    {
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        $this->forceFill([
+            'password_reset_code'       => hash('sha256', $code),
+            'password_reset_expires_at' => now()->addMinutes(30),
+        ])->save();
+
+        $this->notify(new ResetPasswordNotification($code));
+    }
+
+    public function hasValidPasswordResetCode(string $code): bool
+    {
+        if (is_null($this->password_reset_code)) {
+            return false;
+        }
+
+        if ($this->password_reset_expires_at?->isPast()) {
+            return false;
+        }
+
+        return hash_equals($this->password_reset_code, hash('sha256', $code));
+    }
 
     public function player()
     {
