@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\ClubController;
 use App\Http\Controllers\ClubCourtController;
@@ -32,6 +33,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/email/verify',   [AuthController::class, 'verifyEmail']);
     Route::post('/email/resend',   [AuthController::class, 'resendVerification']);
     Route::put('/user/fcm-token',  [AuthController::class, 'updateFcmToken']);
+    Route::delete('/account',      [AccountDeletionController::class, 'destroyApi']);
 });
 
 // ─── Autenticado + e-mail verificado ─────────────────────────────────────────
