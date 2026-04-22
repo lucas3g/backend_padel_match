@@ -12,7 +12,7 @@
                     "Auth"
                 ],
                 "summary": "Registrar novo usuário",
-                "description": "Cria um novo usuário no sistema",
+                "description": "Cria um novo usuário e envia código de verificação por e-mail",
                 "operationId": "8e4e3cb7b46126f4696379d3c7eeb4ad",
                 "requestBody": {
                     "required": true,
@@ -38,6 +38,11 @@
                                         "type": "string",
                                         "format": "password",
                                         "example": "123456"
+                                    },
+                                    "fcm_token": {
+                                        "type": "string",
+                                        "example": "dYr3kExampleToken...",
+                                        "nullable": true
                                     }
                                 },
                                 "type": "object"
@@ -47,7 +52,7 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Usuário criado com sucesso"
+                        "description": "Usuário criado — verificação de e-mail enviada"
                     },
                     "422": {
                         "description": "Erro de validação"
@@ -61,7 +66,7 @@
                     "Auth"
                 ],
                 "summary": "Login no sistema",
-                "description": "Faz login no sistema para usuário criado",
+                "description": "Faz login e retorna token + status de verificação de e-mail",
                 "operationId": "222b2625838e3c57e017987f73598fda",
                 "requestBody": {
                     "required": true,
@@ -90,11 +95,173 @@
                     }
                 },
                 "responses": {
-                    "401": {
-                        "description": "Credenciais inválidas"
-                    },
                     "200": {
                         "description": "Dados do usuário autenticado"
+                    },
+                    "401": {
+                        "description": "Credenciais inválidas"
+                    }
+                }
+            }
+        },
+        "/api/email/verify": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Verificar e-mail com código OTP",
+                "description": "Confirma o e-mail do usuário usando o código de 6 dígitos recebido",
+                "operationId": "a613d7f8092602839d1af4e89b9b6571",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "code"
+                                ],
+                                "properties": {
+                                    "code": {
+                                        "type": "string",
+                                        "example": "482951"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "E-mail verificado com sucesso"
+                    },
+                    "422": {
+                        "description": "Código inválido ou expirado"
+                    },
+                    "429": {
+                        "description": "Muitas tentativas"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/email/resend": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Reenviar código de verificação",
+                "description": "Gera e envia um novo código de verificação por e-mail",
+                "operationId": "c405b3e7f91c2760752ecd4081d3f456",
+                "responses": {
+                    "200": {
+                        "description": "Código reenviado"
+                    },
+                    "429": {
+                        "description": "Limite de reenvios atingido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/password/forgot": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Solicitar redefinição de senha",
+                "description": "Envia um código OTP de 6 dígitos para o e-mail informado",
+                "operationId": "1d022918273c725d29b50455075af9d8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "mateus@email.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Código enviado (resposta idêntica mesmo se e-mail não existir)"
+                    },
+                    "429": {
+                        "description": "Muitas solicitações"
+                    }
+                }
+            }
+        },
+        "/api/password/reset": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Redefinir senha com código OTP",
+                "description": "Valida o código e troca a senha. Revoga todos os tokens ativos do usuário.",
+                "operationId": "7b9954ff3582be1c1ce4fafae9cdad37",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "code",
+                                    "password",
+                                    "password_confirmation"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "mateus@email.com"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "482951"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "novaSenha123"
+                                    },
+                                    "password_confirmation": {
+                                        "type": "string",
+                                        "example": "novaSenha123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Senha redefinida com sucesso"
+                    },
+                    "422": {
+                        "description": "Código inválido, expirado ou dados incorretos"
+                    },
+                    "429": {
+                        "description": "Muitas tentativas"
                     }
                 }
             }
@@ -104,15 +271,14 @@
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Lista o usuário logado",
-                "description": "Lista os dados do usuário logado",
+                "summary": "Dados do usuário autenticado",
                 "operationId": "8367feff40ba10e43187792cad3132c1",
                 "responses": {
-                    "401": {
-                        "description": "Não autenticado"
-                    },
                     "200": {
                         "description": "Dados do usuário autenticado"
+                    },
+                    "401": {
+                        "description": "Não autenticado"
                     }
                 },
                 "security": [
@@ -128,24 +294,10 @@
                     "Auth"
                 ],
                 "summary": "Logout do usuário autenticado",
-                "description": "Revoga o token de acesso atual do usuário autenticado",
                 "operationId": "ad65cbbd4e9f201619eae184a5961a98",
                 "responses": {
                     "200": {
-                        "description": "Logout realizado com sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "Logout realizado"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "Logout realizado com sucesso"
                     },
                     "401": {
                         "description": "Usuário não autenticado"
@@ -164,7 +316,6 @@
                     "Auth"
                 ],
                 "summary": "Atualiza o FCM token do usuário autenticado",
-                "description": "Atualiza o token de notificação push (FCM) do usuário autenticado",
                 "operationId": "1c5c5ad4137230326ebdcd4e9e1564b0",
                 "requestBody": {
                     "required": true,
@@ -187,20 +338,7 @@
                 },
                 "responses": {
                     "200": {
-                        "description": "FCM token atualizado com sucesso",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "properties": {
-                                        "message": {
-                                            "type": "string",
-                                            "example": "FCM token atualizado com sucesso"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            }
-                        }
+                        "description": "FCM token atualizado com sucesso"
                     },
                     "401": {
                         "description": "Não autenticado"
@@ -2047,7 +2185,7 @@
                     "Finalização de Partida"
                 ],
                 "summary": "Finaliza uma partida",
-                "description": "Marca a partida como concluída. Permite três modos de uso:\n     *     1) Apenas finalizar (body vazio);\n     *     2) Informar vencedor e/ou times;\n     *     3) Registrar placar por sets (múltiplos sets possíveis).\n     *     Somente o dono da partida pode finalizar. Atualiza estatísticas dos jogadores quando times e vencedor são informados.",
+                "description": "Marca a partida como concluída. Para partidas do tipo 'ranking', winner_team e sets são obrigatórios.\n     *     Modos de uso:\n     *     1) Apenas finalizar (body vazio) — para partidas casuais/treino;\n     *     2) Informar vencedor e/ou times;\n     *     3) Registrar placar por sets (múltiplos sets possíveis).\n     *     Somente o dono da partida pode finalizar. Atualiza estatísticas dos jogadores quando times e vencedor são informados.\n     *     Partidas de ranking disparam atualização do ELO assíncrona.",
                 "operationId": "6e35b84fe8fd86d8dacbd9669a6d0971",
                 "parameters": [
                     {
@@ -2068,7 +2206,7 @@
                             "schema": {
                                 "properties": {
                                     "winner_team": {
-                                        "description": "Time vencedor (1 ou 2). Se omitido com sets, será calculado automaticamente.",
+                                        "description": "Time vencedor (1 ou 2). Obrigatório para partidas de ranking. Se omitido com sets, será calculado automaticamente.",
                                         "type": "integer",
                                         "enum": [
                                             1,
@@ -2078,7 +2216,7 @@
                                         "nullable": true
                                     },
                                     "sets": {
-                                        "description": "Placar por sets. Cada set é um objeto com team1_score e team2_score.",
+                                        "description": "Placar por sets. Obrigatório para partidas de ranking.",
                                         "type": "array",
                                         "items": {
                                             "properties": {
@@ -2139,6 +2277,11 @@
                                             "type": "string",
                                             "example": "Partida finalizada com sucesso"
                                         },
+                                        "ranking_update_queued": {
+                                            "description": "true quando o ELO do ranking está sendo calculado em background",
+                                            "type": "boolean",
+                                            "example": true
+                                        },
                                         "game": {
                                             "properties": {
                                                 "id": {
@@ -2148,6 +2291,10 @@
                                                 "status": {
                                                     "type": "string",
                                                     "example": "completed"
+                                                },
+                                                "game_type": {
+                                                    "type": "string",
+                                                    "example": "ranking"
                                                 },
                                                 "winner_team": {
                                                     "type": "integer",
@@ -2200,7 +2347,7 @@
                         "description": "Apenas o dono da partida pode finalizá-la"
                     },
                     "422": {
-                        "description": "Partida já finalizada ou parâmetros inválidos"
+                        "description": "Partida já finalizada, parâmetros inválidos ou dados obrigatórios do ranking ausentes"
                     },
                     "404": {
                         "description": "Partida não encontrada"
@@ -3037,6 +3184,448 @@
                 ]
             }
         },
+        "/api/me/player/disponibilidade": {
+            "patch": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Define disponibilidade do player",
+                "description": "Permite ao player sinalizar indisponibilidade temporária (lesão, viagem, licença) com data opcional de retorno. A disponibilidade expira automaticamente na data informada.",
+                "operationId": "f56894e5c9e3054aa4d863c43fa5a65d",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "disponibilidade"
+                                ],
+                                "properties": {
+                                    "disponibilidade": {
+                                        "type": "string",
+                                        "enum": [
+                                            "disponivel",
+                                            "machucado",
+                                            "viajando",
+                                            "licenca"
+                                        ],
+                                        "example": "machucado"
+                                    },
+                                    "motivo_indisponibilidade": {
+                                        "type": "string",
+                                        "maxLength": 500,
+                                        "example": "Lesão no tornozelo direito",
+                                        "nullable": true
+                                    },
+                                    "disponivel_ate": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2026-04-20",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Disponibilidade atualizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "422": {
+                        "description": "Dados inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me/player/clubes-favoritos": {
+            "get": {
+                "tags": [
+                    "Clubes Favoritos"
+                ],
+                "summary": "Lista os clubes favoritos do player",
+                "description": "Retorna os clubes marcados como favoritos pelo jogador autenticado",
+                "operationId": "8bc74a053dce3c25da335349cf13df02",
+                "responses": {
+                    "200": {
+                        "description": "Lista de clubes favoritos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não possui player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Clubes Favoritos"
+                ],
+                "summary": "Sincroniza a lista de clubes favoritos",
+                "description": "Substitui toda a lista de favoritos pelos IDs informados. Envie array vazio para limpar todos.",
+                "operationId": "63a0099f11cdb8306c09759d7bc56797",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "clube_ids"
+                                ],
+                                "properties": {
+                                    "clube_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            3,
+                                            7
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lista de favoritos sincronizada"
+                    },
+                    "404": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "422": {
+                        "description": "IDs inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me/player/clubes-favoritos/{club}": {
+            "post": {
+                "tags": [
+                    "Clubes Favoritos"
+                ],
+                "summary": "Adiciona um clube aos favoritos",
+                "description": "Marca um clube como favorito para o jogador autenticado",
+                "operationId": "7605f7637937b54d9614d6dcd9a9fdde",
+                "parameters": [
+                    {
+                        "name": "club",
+                        "in": "path",
+                        "description": "ID do clube",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Clube adicionado aos favoritos"
+                    },
+                    "404": {
+                        "description": "Clube ou player não encontrado"
+                    },
+                    "409": {
+                        "description": "Clube já está nos favoritos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Clubes Favoritos"
+                ],
+                "summary": "Remove um clube dos favoritos",
+                "description": "Desmarca um clube como favorito do jogador autenticado",
+                "operationId": "522baa58826bc6169455d9667ee023d9",
+                "parameters": [
+                    {
+                        "name": "club",
+                        "in": "path",
+                        "description": "ID do clube",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Clube removido dos favoritos"
+                    },
+                    "404": {
+                        "description": "Clube não está nos favoritos ou player não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me/player/jogadores-favoritos": {
+            "get": {
+                "tags": [
+                    "Jogadores Favoritos"
+                ],
+                "summary": "Lista os jogadores favoritos do player",
+                "description": "Retorna os jogadores marcados como favoritos pelo jogador autenticado, com filtros opcionais",
+                "operationId": "04d80e226b225a851c7210d3e49c3ea6",
+                "parameters": [
+                    {
+                        "name": "full_name",
+                        "in": "query",
+                        "description": "Filtrar por nome (busca parcial)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "side",
+                        "in": "query",
+                        "description": "Filtrar por lado (left, right, both)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "left",
+                                "right",
+                                "both"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "uf",
+                        "in": "query",
+                        "description": "Filtrar por UF",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "SP"
+                        }
+                    },
+                    {
+                        "name": "municipio_ibge",
+                        "in": "query",
+                        "description": "Filtrar por código IBGE do município",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "example": "3550308"
+                        }
+                    },
+                    {
+                        "name": "level",
+                        "in": "query",
+                        "description": "Filtrar por nível",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "apenas_disponiveis",
+                        "in": "query",
+                        "description": "Apenas jogadores disponíveis",
+                        "required": false,
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de jogadores favoritos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Usuário não possui player vinculado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Jogadores Favoritos"
+                ],
+                "summary": "Sincroniza a lista de jogadores favoritos",
+                "description": "Substitui toda a lista de favoritos pelos IDs informados. Envie array vazio para limpar todos.",
+                "operationId": "6d4f2cd583fcd3d99692049e6ee0f31a",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "player_ids"
+                                ],
+                                "properties": {
+                                    "player_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            3,
+                                            7
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Lista de favoritos sincronizada"
+                    },
+                    "404": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "422": {
+                        "description": "IDs inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/me/player/jogadores-favoritos/{player}": {
+            "post": {
+                "tags": [
+                    "Jogadores Favoritos"
+                ],
+                "summary": "Adiciona um jogador aos favoritos",
+                "description": "Marca um jogador como favorito. O jogador deve ser um amigo aceito.",
+                "operationId": "d15fe9a8a5c8e2e948164be66421b234",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Jogador adicionado aos favoritos"
+                    },
+                    "400": {
+                        "description": "Jogadores não são amigos ou tentativa de favoritar a si mesmo"
+                    },
+                    "404": {
+                        "description": "Usuário não possui player vinculado"
+                    },
+                    "409": {
+                        "description": "Jogador já está nos favoritos"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Jogadores Favoritos"
+                ],
+                "summary": "Remove um jogador dos favoritos",
+                "description": "Desmarca um jogador como favorito do jogador autenticado",
+                "operationId": "1a5126aaa4f23b8e120ccd1507a03312",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Jogador removido dos favoritos"
+                    },
+                    "404": {
+                        "description": "Jogador não está nos favoritos ou player não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/game/{game}/suggest-players": {
             "get": {
                 "tags": [
@@ -3250,6 +3839,585 @@
                     }
                 ]
             }
+        },
+        "/api/ranking/players": {
+            "get": {
+                "tags": [
+                    "Ranking"
+                ],
+                "summary": "Ranking geral de jogadores",
+                "description": "Retorna a lista paginada de jogadores ordenada pela posição no ranking (baseado em ELO). Apenas jogadores com ao menos uma partida de ranking são incluídos.",
+                "operationId": "b608d182bddd2e69cd1d952c4884b8b6",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Página",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Itens por página (máx 100)",
+                        "schema": {
+                            "type": "integer",
+                            "example": 25
+                        }
+                    },
+                    {
+                        "name": "level_min",
+                        "in": "query",
+                        "description": "Filtrar por nível mínimo (1-10)",
+                        "schema": {
+                            "type": "integer",
+                            "example": 4
+                        }
+                    },
+                    {
+                        "name": "level_max",
+                        "in": "query",
+                        "description": "Filtrar por nível máximo (1-10)",
+                        "schema": {
+                            "type": "integer",
+                            "example": 8
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ranking de jogadores",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "ranking_position": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "player_id": {
+                                                        "type": "integer",
+                                                        "example": 7
+                                                    },
+                                                    "full_name": {
+                                                        "type": "string",
+                                                        "example": "Carlos Lima"
+                                                    },
+                                                    "level": {
+                                                        "type": "integer",
+                                                        "example": 8
+                                                    },
+                                                    "side": {
+                                                        "type": "string",
+                                                        "example": "right"
+                                                    },
+                                                    "profile_image_url": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "ranking_points": {
+                                                        "type": "integer",
+                                                        "example": 1284
+                                                    },
+                                                    "ranking_matches": {
+                                                        "type": "integer",
+                                                        "example": 15
+                                                    },
+                                                    "ranking_wins": {
+                                                        "type": "integer",
+                                                        "example": 12
+                                                    },
+                                                    "ranking_losses": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "win_rate": {
+                                                        "type": "number",
+                                                        "example": 80
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ranking/players/{player}": {
+            "get": {
+                "tags": [
+                    "Ranking"
+                ],
+                "summary": "Card de ranking de um jogador",
+                "description": "Retorna os dados de ranking de um jogador específico, incluindo histórico dos últimos 5 jogos de ranking com delta ELO.",
+                "operationId": "22ea544d0e28037059d93f2b074b534f",
+                "parameters": [
+                    {
+                        "name": "player",
+                        "in": "path",
+                        "description": "ID do jogador",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Card de ranking do jogador",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "player_id": {
+                                            "type": "integer"
+                                        },
+                                        "full_name": {
+                                            "type": "string"
+                                        },
+                                        "level": {
+                                            "type": "integer"
+                                        },
+                                        "ranking_position": {
+                                            "type": "integer",
+                                            "nullable": true
+                                        },
+                                        "ranking_points": {
+                                            "type": "integer"
+                                        },
+                                        "ranking_matches": {
+                                            "type": "integer"
+                                        },
+                                        "ranking_wins": {
+                                            "type": "integer"
+                                        },
+                                        "ranking_losses": {
+                                            "type": "integer"
+                                        },
+                                        "win_rate": {
+                                            "type": "number"
+                                        },
+                                        "current_streak": {
+                                            "type": "integer"
+                                        },
+                                        "recent_elo_history": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "game_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "date": {
+                                                        "type": "string",
+                                                        "format": "date"
+                                                    },
+                                                    "elo_before": {
+                                                        "type": "number"
+                                                    },
+                                                    "elo_after": {
+                                                        "type": "number"
+                                                    },
+                                                    "elo_delta": {
+                                                        "type": "integer"
+                                                    },
+                                                    "won": {
+                                                        "type": "boolean"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Jogador não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ranking/clubs": {
+            "get": {
+                "tags": [
+                    "Ranking"
+                ],
+                "summary": "Ranking geral de clubes",
+                "description": "Retorna a lista paginada de clubes ordenada pela posição no ranking (baseado na média de ELO dos jogadores).",
+                "operationId": "116d5035383aaf27bf8ac1ef42141dd2",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Página",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Itens por página (máx 50)",
+                        "schema": {
+                            "type": "integer",
+                            "example": 20
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ranking de clubes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "ranking_position": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "club_id": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Club Padel Norte"
+                                                    },
+                                                    "city": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "state": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "average_elo": {
+                                                        "type": "number",
+                                                        "example": 1187.4
+                                                    },
+                                                    "active_players": {
+                                                        "type": "integer",
+                                                        "example": 23
+                                                    },
+                                                    "total_ranking_games": {
+                                                        "type": "integer",
+                                                        "example": 41
+                                                    },
+                                                    "win_rate": {
+                                                        "type": "number",
+                                                        "example": 62.5
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ranking/clubs/{club}": {
+            "get": {
+                "tags": [
+                    "Ranking"
+                ],
+                "summary": "Card de ranking de um clube",
+                "description": "Retorna os dados de ranking de um clube específico, incluindo o top 5 de jogadores do clube.",
+                "operationId": "c98a2ee99d92a69c168d1ebc7749dfb1",
+                "parameters": [
+                    {
+                        "name": "club",
+                        "in": "path",
+                        "description": "ID do clube",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Card de ranking do clube",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "club_id": {
+                                            "type": "integer"
+                                        },
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "ranking_position": {
+                                            "type": "integer",
+                                            "nullable": true
+                                        },
+                                        "average_elo": {
+                                            "type": "number"
+                                        },
+                                        "active_players": {
+                                            "type": "integer"
+                                        },
+                                        "total_ranking_games": {
+                                            "type": "integer"
+                                        },
+                                        "win_rate": {
+                                            "type": "number"
+                                        },
+                                        "last_computed_at": {
+                                            "type": "string",
+                                            "format": "datetime",
+                                            "nullable": true
+                                        },
+                                        "top_players": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "player_id": {
+                                                        "type": "integer"
+                                                    },
+                                                    "full_name": {
+                                                        "type": "string"
+                                                    },
+                                                    "ranking_position": {
+                                                        "type": "integer"
+                                                    },
+                                                    "ranking_points": {
+                                                        "type": "integer"
+                                                    },
+                                                    "level": {
+                                                        "type": "integer"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Clube não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ranking/clubs/{club}/players": {
+            "get": {
+                "tags": [
+                    "Ranking"
+                ],
+                "summary": "Ranking de jogadores de um clube",
+                "description": "Retorna a lista paginada de jogadores rankeados em um clube específico, ordenados pelo ELO do clube. Apenas jogadores com ao menos 3 partidas de ranking no clube são incluídos.",
+                "operationId": "7ec976da92430fd58dd9506233984fe0",
+                "parameters": [
+                    {
+                        "name": "club",
+                        "in": "path",
+                        "description": "ID do clube",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Página",
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Itens por página (máx 100)",
+                        "schema": {
+                            "type": "integer",
+                            "example": 25
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ranking de jogadores do clube",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "club_position": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "player_id": {
+                                                        "type": "integer",
+                                                        "example": 7
+                                                    },
+                                                    "full_name": {
+                                                        "type": "string",
+                                                        "example": "Carlos Lima"
+                                                    },
+                                                    "level": {
+                                                        "type": "integer",
+                                                        "example": 8
+                                                    },
+                                                    "side": {
+                                                        "type": "string",
+                                                        "example": "right"
+                                                    },
+                                                    "profile_image_url": {
+                                                        "type": "string",
+                                                        "nullable": true
+                                                    },
+                                                    "club_elo": {
+                                                        "type": "integer",
+                                                        "example": 1245
+                                                    },
+                                                    "global_position": {
+                                                        "type": "integer",
+                                                        "example": 3,
+                                                        "nullable": true
+                                                    },
+                                                    "global_elo": {
+                                                        "type": "integer",
+                                                        "example": 1284
+                                                    },
+                                                    "ranking_matches_at_club": {
+                                                        "type": "integer",
+                                                        "example": 10
+                                                    },
+                                                    "ranking_wins_at_club": {
+                                                        "type": "integer",
+                                                        "example": 7
+                                                    },
+                                                    "ranking_losses_at_club": {
+                                                        "type": "integer",
+                                                        "example": 3
+                                                    },
+                                                    "win_rate_at_club": {
+                                                        "type": "number",
+                                                        "example": 70
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        },
+                                        "meta": {
+                                            "properties": {
+                                                "current_page": {
+                                                    "type": "integer"
+                                                },
+                                                "per_page": {
+                                                    "type": "integer"
+                                                },
+                                                "total": {
+                                                    "type": "integer"
+                                                },
+                                                "last_page": {
+                                                    "type": "integer"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Clube não encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "tags": [
@@ -3290,8 +4458,20 @@
             "description": "Gerenciamento do perfil do jogador"
         },
         {
+            "name": "Clubes Favoritos",
+            "description": "Gerenciamento dos clubes favoritos do jogador"
+        },
+        {
+            "name": "Jogadores Favoritos",
+            "description": "Gerenciamento dos jogadores favoritos do jogador (somente amigos aceitos)"
+        },
+        {
             "name": "Sugestão de Jogadores",
             "description": "Sugestão de jogadores para convite em partidas"
+        },
+        {
+            "name": "Ranking",
+            "description": "Endpoints para consulta do ranking de jogadores e clubes"
         },
         {
             "name": "Club/Courts",
