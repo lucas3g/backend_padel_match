@@ -229,7 +229,7 @@ class RankingController extends Controller
      *                 @OA\Property(property="ranking_position", type="integer", example=1),
      *                 @OA\Property(property="club_id", type="integer", example=3),
      *                 @OA\Property(property="name", type="string", example="Club Padel Norte"),
-     *                 @OA\Property(property="city", type="string", nullable=true),
+     *                 @OA\Property(property="city", type="string", example="Chapecó", nullable=true),
      *                 @OA\Property(property="state", type="string", nullable=true),
      *                 @OA\Property(property="average_elo", type="number", example=1187.4),
      *                 @OA\Property(property="active_players", type="integer", example=23),
@@ -254,7 +254,7 @@ class RankingController extends Controller
 
         $perPage = $request->integer('per_page', 20);
 
-        $paginated = ClubRanking::with('club:id,name,city,state')
+        $paginated = ClubRanking::with(['club:id,name,city,state', 'club.municipio:codigo_ibge,descricao'])
             ->whereNotNull('ranking_position')
             ->orderBy('ranking_position')
             ->paginate($perPage);
@@ -263,7 +263,7 @@ class RankingController extends Controller
             'ranking_position'    => $cr->ranking_position,
             'club_id'             => $cr->club_id,
             'name'                => $cr->club?->name,
-            'city'                => $cr->club?->city,
+            'city'                => $cr->club?->municipio?->descricao,
             'state'               => $cr->club?->state,
             'average_elo'         => $cr->average_elo,
             'active_players'      => $cr->active_players,
@@ -298,6 +298,8 @@ class RankingController extends Controller
      *         @OA\JsonContent(
      *             @OA\Property(property="club_id", type="integer"),
      *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="city", type="string", example="Chapecó", nullable=true),
+     *             @OA\Property(property="state", type="string", example="SC", nullable=true),
      *             @OA\Property(property="ranking_position", type="integer", nullable=true),
      *             @OA\Property(property="average_elo", type="number"),
      *             @OA\Property(property="active_players", type="integer"),
@@ -318,6 +320,7 @@ class RankingController extends Controller
      */
     public function clubCard(Club $club): JsonResponse
     {
+        $club->load('municipio:codigo_ibge,descricao');
         $rankingStats = $club->rankingStats;
 
         // Top 5 jogadores do clube por club_elo (ELO específico do clube)
@@ -343,6 +346,8 @@ class RankingController extends Controller
         return response()->json([
             'club_id'             => $club->id,
             'name'                => $club->name,
+            'city'                => $club->municipio?->descricao,
+            'state'               => $club->state,
             'ranking_position'    => $rankingStats?->ranking_position,
             'average_elo'         => $rankingStats?->average_elo,
             'active_players'      => $rankingStats?->active_players ?? 0,
