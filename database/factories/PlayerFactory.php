@@ -28,6 +28,7 @@ class PlayerFactory extends Factory
             'ranking_points'  => 1000,
             'ranking_position'=> null,
             'is_active'       => true,
+            'is_verified'     => true,
             'disponibilidade' => 'disponivel',
             'uf'              => 'SP',
             'municipio_ibge'  => 3550308,
