@@ -54,6 +54,14 @@ class PlayerResource extends Resource
                         'both'  => 'Ambos',
                         default => '-',
                     }),
+                Tables\Columns\TextColumn::make('sexo')
+                    ->label('Sexo')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'masculino'            => 'Masculino',
+                        'feminino'             => 'Feminino',
+                        'prefiro_nao_informar' => 'Pref. não informar',
+                        default                => '—',
+                    }),
                 Tables\Columns\TextColumn::make('uf')
                     ->label('UF'),
                 Tables\Columns\TextColumn::make('phone')

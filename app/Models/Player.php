@@ -18,6 +18,7 @@ class Player extends Model
         'phone',
         'level',
         'side',
+        'sexo',
         'bio',
         'profile_image_url',
         'total_matches',

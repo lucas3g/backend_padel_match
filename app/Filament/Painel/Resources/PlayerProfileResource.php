@@ -58,6 +58,14 @@ class PlayerProfileResource extends Resource
                             'right' => 'Direita',
                             'both'  => 'Ambos',
                         ]),
+                    Forms\Components\Select::make('sexo')
+                        ->label('Sexo')
+                        ->options([
+                            'masculino'            => 'Masculino',
+                            'feminino'             => 'Feminino',
+                            'prefiro_nao_informar' => 'Prefiro não informar',
+                        ])
+                        ->placeholder('Não informado'),
                     Forms\Components\Textarea::make('bio')
                         ->label('Bio')
                         ->maxLength(500)

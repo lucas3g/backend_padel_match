@@ -2892,6 +2892,16 @@
                                         ],
                                         "example": "both"
                                     },
+                                    "sexo": {
+                                        "type": "string",
+                                        "enum": [
+                                            "masculino",
+                                            "feminino",
+                                            "prefiro_nao_informar"
+                                        ],
+                                        "example": "masculino",
+                                        "nullable": true
+                                    },
                                     "bio": {
                                         "type": "string",
                                         "example": "Jogador intermediário"
@@ -2975,6 +2985,16 @@
                                             "both"
                                         ],
                                         "example": "right"
+                                    },
+                                    "sexo": {
+                                        "type": "string",
+                                        "enum": [
+                                            "masculino",
+                                            "feminino",
+                                            "prefiro_nao_informar"
+                                        ],
+                                        "example": "masculino",
+                                        "nullable": true
                                     },
                                     "bio": {
                                         "type": "string",
@@ -3747,7 +3767,7 @@
                     {
                         "name": "min_level",
                         "in": "query",
-                        "description": "Nível mínimo do jogador (1 a 10)",
+                        "description": "Nível mínimo do jogador (1 a 7)",
                         "required": false,
                         "schema": {
                             "type": "integer",
@@ -3757,7 +3777,7 @@
                     {
                         "name": "max_level",
                         "in": "query",
-                        "description": "Nível máximo do jogador (1 a 10)",
+                        "description": "Nível máximo do jogador (1 a 7)",
                         "required": false,
                         "schema": {
                             "type": "integer",
@@ -3870,7 +3890,7 @@
                     {
                         "name": "level_min",
                         "in": "query",
-                        "description": "Filtrar por nível mínimo (1-10)",
+                        "description": "Filtrar por nível mínimo (1-7)",
                         "schema": {
                             "type": "integer",
                             "example": 4
@@ -3879,10 +3899,10 @@
                     {
                         "name": "level_max",
                         "in": "query",
-                        "description": "Filtrar por nível máximo (1-10)",
+                        "description": "Filtrar por nível máximo (1-7)",
                         "schema": {
                             "type": "integer",
-                            "example": 8
+                            "example": 7
                         }
                     }
                 ],
@@ -4130,6 +4150,7 @@
                                                     },
                                                     "city": {
                                                         "type": "string",
+                                                        "example": "Chapecó",
                                                         "nullable": true
                                                     },
                                                     "state": {
@@ -4218,6 +4239,16 @@
                                         },
                                         "name": {
                                             "type": "string"
+                                        },
+                                        "city": {
+                                            "type": "string",
+                                            "example": "Chapecó",
+                                            "nullable": true
+                                        },
+                                        "state": {
+                                            "type": "string",
+                                            "example": "SC",
+                                            "nullable": true
                                         },
                                         "ranking_position": {
                                             "type": "integer",
