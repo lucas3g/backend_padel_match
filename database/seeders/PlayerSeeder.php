@@ -14,13 +14,17 @@ class PlayerSeeder extends Seeder
             return;
         }
 
-        for ($level = 1; $level <= 10; $level++) {
-            Player::factory()
+        for ($level = 1; $level <= 7; $level++) {
+            $players = Player::factory()
                 ->count(2)
                 ->withLevel($level)
                 ->create();
+
+            foreach ($players as $player) {
+                $player->user->assignRole('player');
+            }
         }
 
-        $this->command->info('PlayerSeeder: 20 jogadores criados (2 por nível 1–10).');
+        $this->command->info('PlayerSeeder: 14 jogadores criados (2 por nível 1–7) com role player.');
     }
 }

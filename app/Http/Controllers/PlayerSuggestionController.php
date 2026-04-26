@@ -95,14 +95,14 @@ class PlayerSuggestionController extends Controller
      *         name="min_level",
      *         in="query",
      *         required=false,
-     *         description="Nível mínimo do jogador (1 a 10)",
+     *         description="Nível mínimo do jogador (1 a 7)",
      *         @OA\Schema(type="integer", example=2)
      *     ),
      *     @OA\Parameter(
      *         name="max_level",
      *         in="query",
      *         required=false,
-     *         description="Nível máximo do jogador (1 a 10)",
+     *         description="Nível máximo do jogador (1 a 7)",
      *         @OA\Schema(type="integer", example=6)
      *     ),
      *
@@ -139,8 +139,8 @@ class PlayerSuggestionController extends Controller
 
         $request->validate([
             'club_id'   => 'nullable|integer|exists:clubs,id',
-            'min_level' => 'nullable|integer|min:1|max:10',
-            'max_level' => 'nullable|integer|min:1|max:10|gte:min_level',
+            'min_level' => 'nullable|integer|min:1|max:7',
+            'max_level' => 'nullable|integer|min:1|max:7|gte:min_level',
         ]);
 
         return response()->json(

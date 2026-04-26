@@ -28,8 +28,8 @@ class RankingController extends Controller
      *
      *     @OA\Parameter(name="page", in="query", description="Página", @OA\Schema(type="integer", example=1)),
      *     @OA\Parameter(name="per_page", in="query", description="Itens por página (máx 100)", @OA\Schema(type="integer", example=25)),
-     *     @OA\Parameter(name="level_min", in="query", description="Filtrar por nível mínimo (1-10)", @OA\Schema(type="integer", example=4)),
-     *     @OA\Parameter(name="level_max", in="query", description="Filtrar por nível máximo (1-10)", @OA\Schema(type="integer", example=8)),
+     *     @OA\Parameter(name="level_min", in="query", description="Filtrar por nível mínimo (1-7)", @OA\Schema(type="integer", example=4)),
+     *     @OA\Parameter(name="level_max", in="query", description="Filtrar por nível máximo (1-7)", @OA\Schema(type="integer", example=7)),
      *
      *     @OA\Response(
      *         response=200,
@@ -62,8 +62,8 @@ class RankingController extends Controller
     {
         $request->validate([
             'per_page'  => 'nullable|integer|min:1|max:100',
-            'level_min' => 'nullable|integer|min:1|max:10',
-            'level_max' => 'nullable|integer|min:1|max:10',
+            'level_min' => 'nullable|integer|min:1|max:7',
+            'level_max' => 'nullable|integer|min:1|max:7',
         ]);
 
         $perPage = $request->integer('per_page', 25);
