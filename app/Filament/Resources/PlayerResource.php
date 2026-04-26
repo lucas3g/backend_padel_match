@@ -131,14 +131,6 @@ class PlayerResource extends Resource
                         'both'  => 'Ambos',
                         default => $state ?? '-',
                     }),
-                Tables\Columns\TextColumn::make('sexo')
-                    ->label('Sexo')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'masculino'            => 'Masculino',
-                        'feminino'             => 'Feminino',
-                        'prefiro_nao_informar' => 'Pref. não informar',
-                        default                => '—',
-                    }),
                 Tables\Columns\TextColumn::make('total_matches')
                     ->label('Partidas')
                     ->numeric()
