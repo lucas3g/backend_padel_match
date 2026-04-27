@@ -35,6 +35,14 @@ class PlayerFactory extends Factory
         ];
     }
 
+    public function configure(): static
+    {
+        return $this->afterCreating(function (\App\Models\Player $player) {
+            $player->full_name = $player->user->name;
+            $player->save();
+        });
+    }
+
     public function withLevel(int $level): static
     {
         return $this->state(['level' => $level]);
