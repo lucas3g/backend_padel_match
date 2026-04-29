@@ -23,7 +23,7 @@ class PlayerFactory extends Factory
             'phone'           => fake('pt_BR')->numerify('(##) 9####-####'),
             'level'           => fake()->numberBetween(1, 7),
             'side'            => fake()->randomElement(['left', 'right', 'both']),
-            'sexo'            => fake()->randomElement(['masculino', 'feminino', 'prefiro_nao_informar']),
+            'sexo'            => fake()->randomElement(['masculino', 'feminino']),
             'bio'             => fake('pt_BR')->sentence(10),
             'ranking_points'  => 1000,
             'ranking_position'=> null,
