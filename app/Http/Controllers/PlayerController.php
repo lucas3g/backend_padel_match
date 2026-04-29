@@ -8,6 +8,9 @@ use App\Rules\ValidCodigoIbge;
 use App\Rules\ValidUf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Drivers\Gd\Driver as GdDriver;
+use Intervention\Image\ImageManager;
 
 /**
  * @OA\Tag(
@@ -623,5 +626,81 @@ class PlayerController extends Controller
             'disponivel_ate'           => $player->disponivel_ate?->toDateString(),
             'esta_disponivel'          => $player->esta_disponivel,
         ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/me/player/foto",
+     *     tags={"Player"},
+     *     summary="Upload de foto de perfil",
+     *     description="Faz upload de uma imagem de perfil para o player autenticado. A imagem é redimensionada para no máximo 1080x1080px e salva como JPEG com qualidade 85%. A foto anterior é excluída automaticamente.",
+     *     security={{"bearerAuth":{}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 required={"image"},
+     *                 @OA\Property(
+     *                     property="image",
+     *                     type="string",
+     *                     format="binary",
+     *                     description="Imagem de perfil (jpg, jpeg, png ou webp, máximo 10MB)"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Foto atualizada com sucesso",
+     *         @OA\JsonContent(type="object")
+     *     ),
+     *     @OA\Response(response=404, description="Player não encontrado"),
+     *     @OA\Response(response=422, description="Arquivo inválido")
+     * )
+     */
+    public function uploadFoto(Request $request): JsonResponse
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:10240',
+        ], [
+            'image.required' => 'A imagem é obrigatória.',
+            'image.image'    => 'O arquivo enviado não é uma imagem válida.',
+            'image.mimes'    => 'A imagem deve ser do tipo jpg, jpeg, png ou webp.',
+            'image.max'      => 'A imagem não pode ultrapassar 10MB.',
+        ]);
+
+        $player = $request->user()->player;
+
+        if (!$player) {
+            return response()->json(['message' => 'Player não encontrado'], 404);
+        }
+
+        // Excluir arquivo antigo se for arquivo local gerenciado pela API
+        if ($player->profile_image_url && str_contains($player->profile_image_url, '/storage/players/')) {
+            preg_match('#/storage/(.+)#', parse_url($player->profile_image_url, PHP_URL_PATH), $matches);
+            if (!empty($matches[1])) {
+                Storage::disk('public')->delete($matches[1]);
+            }
+        }
+
+        // Redimensionar para no máximo 1080x1080 mantendo proporção e salvar como JPEG 85%
+        $manager = new ImageManager(new GdDriver());
+        $image   = $manager->read($request->file('image'));
+        $image->scaleDown(1080, 1080);
+        $encoded = $image->toJpeg(quality: 85);
+
+        $filename = 'profile_' . uniqid() . '.jpg';
+        $path     = "players/{$player->id}/{$filename}";
+
+        Storage::disk('public')->put($path, (string) $encoded);
+
+        $player->update([
+            'profile_image_url' => Storage::disk('public')->url($path),
+        ]);
+
+        return response()->json($player->fresh());
     }
 }

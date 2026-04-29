@@ -53,6 +53,7 @@ Route::middleware(['auth:sanctum', 'verified.api'])->group(function () {
     Route::post('/player', [PlayerController::class, 'store']);
     Route::put('/player', [PlayerController::class, 'update']);
     Route::get('me/player', [PlayerController::class, 'me']);
+    Route::post('me/player/foto', [PlayerController::class, 'uploadFoto']);
     Route::patch('me/player/disponibilidade', [PlayerController::class, 'definirDisponibilidade']);
     Route::get('me/player/clubes-favoritos', [PlayerFavoriteClubController::class, 'index']);
     Route::put('me/player/clubes-favoritos', [PlayerFavoriteClubController::class, 'sync']);

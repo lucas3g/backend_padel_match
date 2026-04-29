@@ -3274,6 +3274,59 @@
                 ]
             }
         },
+        "/api/me/player/foto": {
+            "post": {
+                "tags": [
+                    "Player"
+                ],
+                "summary": "Upload de foto de perfil",
+                "description": "Faz upload de uma imagem de perfil para o player autenticado. A imagem é redimensionada para no máximo 1080x1080px e salva como JPEG com qualidade 85%. A foto anterior é excluída automaticamente.",
+                "operationId": "b63957a34c53e90349c0194675cc2a2f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "image"
+                                ],
+                                "properties": {
+                                    "image": {
+                                        "description": "Imagem de perfil (jpg, jpeg, png ou webp, máximo 10MB)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Foto atualizada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Player não encontrado"
+                    },
+                    "422": {
+                        "description": "Arquivo inválido"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/me/player/clubes-favoritos": {
             "get": {
                 "tags": [

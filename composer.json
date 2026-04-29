@@ -12,6 +12,7 @@
         "filament/filament": "^3.0",
         "google/auth": "^1.50",
         "guzzlehttp/guzzle": "^7.2",
+        "intervention/image": "^3.0",
         "laravel/framework": "^10.10",
         "laravel/horizon": "^5.45",
         "laravel/sanctum": "^3.3",
