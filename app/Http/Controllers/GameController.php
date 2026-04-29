@@ -6,6 +6,8 @@ use App\Actions\Games\JoinGameAction;
 use App\Actions\Games\LeaveGameAction;
 use App\Events\TeamsUpdated;
 use App\Exceptions\Games\GameIsFullException;
+use App\Exceptions\Games\PlayerLevelTooHighException;
+use App\Exceptions\Games\PlayerLevelTooLowException;
 use App\Exceptions\Games\TeamIsFullException;
 use App\Models\Game;
 use App\Models\Player;
@@ -432,6 +434,10 @@ class GameController extends Controller
             return response()->json(['message' => $e->getMessage()], 409);
         } catch (TeamIsFullException $e) {
             return response()->json(['message' => $e->getMessage()], 409);
+        } catch (PlayerLevelTooLowException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        } catch (PlayerLevelTooHighException $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
         }
 
         return response()->json(['message' => 'Entrou na partida']);
@@ -780,34 +786,72 @@ class GameController extends Controller
             ], 404);
         }
 
+        if ($request->user()->cannot('update', $game)) {
+            return response()->json([
+                'message' => 'Sem permissão para editar esta partida'
+            ], 403);
+        }
+
+        if (in_array($game->status, ['completed', 'canceled'])) {
+            return response()->json([
+                'message' => 'Não é possível editar uma partida já finalizada ou cancelada'
+            ], 422);
+        }
+
         $data = $request->validate([
             "title" => 'nullable|string|max:255',
             "description" => 'nullable|string|max:500',
             "type"  => 'required|in:public,private',
             "data_time" => 'nullable|date',
-            "club_id" => 'required',
-            "court_id" => 'required',
+            "club_id" => 'required|exists:clubs,id',
+            "court_id" => 'required|exists:courts,id',
             "custom_location" => 'nullable|string|max:500',
-            "min_level" => 'nullable',
-            "max_level" => 'nullable',
-            "max_players" => 'nullable',
-            "status"     => 'required|in:open,full,in_progress,completed,canceled',
-            "price" => 'nullable',
-            "cost_per_player" => 'nullable',
+            "min_level" => 'nullable|integer|min:1|max:7|lte:max_level',
+            "max_level" => 'nullable|integer|min:1|max:7|gte:min_level',
+            "max_players" => 'nullable|integer|in:2,4',
+            "price" => 'nullable|numeric',
+            "cost_per_player" => 'nullable|numeric',
             "game_type" => 'required|in:casual,competitive,training,ranking',
-            "duration_minutes" => 'nullable',
+            "duration_minutes" => 'nullable|integer|min:30',
             "players" => 'nullable|array',
             "players.*.player_id" => 'required|integer|exists:players,id',
             "players.*.team" => 'nullable|integer|in:1,2',
         ], [
             'type.required' => 'O tipo de partida é obrigatório. Defina entre publica ou privada',
-            'status.required' => 'A status da partida é obrigatório.',
             'data_time.required' => 'A data e hora da partida é obrigatório.',
             'club_id.required' => 'O clube é obrigatório.',
+            'club_id.exists' => 'O clube informado não existe.',
             'court_id.required' => 'A quadra é obrigatório.',
+            'court_id.exists' => 'A quadra informada não existe.',
+            'min_level.integer' => 'O nível mínimo deve ser um número inteiro.',
+            'min_level.min' => 'O nível mínimo deve ser entre 1 e 7.',
+            'min_level.max' => 'O nível mínimo deve ser entre 1 e 7.',
+            'min_level.lte' => 'O nível mínimo não pode ser maior que o nível máximo.',
+            'max_level.integer' => 'O nível máximo deve ser um número inteiro.',
+            'max_level.min' => 'O nível máximo deve ser entre 1 e 7.',
+            'max_level.max' => 'O nível máximo deve ser entre 1 e 7.',
+            'max_level.gte' => 'O nível máximo não pode ser menor que o nível mínimo.',
+            'max_players.in' => 'O número máximo de jogadores deve ser 2 ou 4.',
+            'price.numeric' => 'O preço deve ser um valor numérico.',
+            'cost_per_player.numeric' => 'O custo por jogador deve ser um valor numérico.',
+            'duration_minutes.integer' => 'A duração deve ser um número inteiro.',
+            'duration_minutes.min' => 'A duração mínima é de 30 minutos.',
             'players.*.player_id.exists' => 'Um dos jogadores informados não existe.',
             'players.*.team.in' => 'O time deve ser 1 ou 2.',
         ]);
+
+        $club = \App\Models\Club::find($data['club_id']);
+        if (!$club->active) {
+            return response()->json(['message' => 'Clube não está ativo'], 422);
+        }
+
+        $court = \App\Models\Court::find($data['court_id']);
+        if ($court->club_id != $club->id) {
+            return response()->json(['message' => 'A quadra informada não pertence ao clube selecionado'], 422);
+        }
+        if (!$court->active) {
+            return response()->json(['message' => 'Quadra não está ativa'], 422);
+        }
 
         $game->update($data);
 

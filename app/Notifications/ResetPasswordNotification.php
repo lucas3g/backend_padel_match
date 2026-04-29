@@ -28,6 +28,7 @@ class ResetPasswordNotification extends Notification implements ShouldQueue
             ->line("# {$this->code}")
             ->line('')
             ->line('O código é válido por **30 minutos**.')
-            ->line('Se você não solicitou a redefinição de senha, ignore este e-mail.');
+            ->line('Se você não solicitou a redefinição de senha, ignore este e-mail.')
+            ->salutation('Padel Match');
     }
 }
